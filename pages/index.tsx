@@ -1,3 +1,4 @@
+import { add } from "lodash";
 import {
   DetailedHTMLProps,
   InputHTMLAttributes,
@@ -6,6 +7,42 @@ import {
 } from "react";
 import * as firebase from "firebase/app";
 import "firebase/database";
+
+interface HomeData {
+  baseCost: number;
+  countyTaxRate: number;
+}
+
+interface Issue {
+  name: string;
+  cost: number;
+}
+
+class Cost {
+  #issues: Issue[];
+  #home: HomeData;
+
+  constructor({ issues, home }: { issues: Issue[]; home: HomeData }) {
+    this.#issues = issues;
+    this.#home = home;
+  }
+
+  get totalIssueCost() {
+    return this.#issues.reduce((total, issue) => {
+      return total + issue.cost;
+    }, 0);
+  }
+
+  get total() {
+    return add(this.totalIssueCost, this.#home.baseCost);
+  }
+
+  get annualTaxes() {
+    return Number(
+      (this.#home.countyTaxRate / 100) * this.#home.baseCost
+    ).toFixed(2);
+  }
+}
 
 const firebaseConfig = {
   apiKey: "AIzaSyDONcnazlcu-lAWcrC8XPdu0B4grH7benw",
@@ -23,13 +60,9 @@ if (firebase.apps.length === 0) {
 
 const database = firebase.database();
 
-function useFirebase<T>(
-  path: string
-):
-  | {
-      [key: string]: T;
-    }
-  | undefined {
+type SetAttribute = (attribute: string, value: string | number | null) => void;
+
+function useFirebase<T>(path: string): [T | undefined, SetAttribute] {
   const [value, setValue] = useState();
   const ref = database.ref(path);
 
@@ -40,7 +73,16 @@ function useFirebase<T>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return value;
+  function setAttribute(attribute: string, newValue: string | number | null) {
+    ref.transaction((object) => {
+      const nonNullObject = object || {};
+      nonNullObject[attribute] = newValue;
+
+      return nonNullObject;
+    });
+  }
+
+  return [value, setAttribute];
 }
 
 function insertIssue() {
@@ -52,22 +94,24 @@ function insertIssue() {
   });
 }
 
-function updateIssue(key: string, attr: string, value: string | number) {
-  console.log(key, attr, value);
-  database.ref("issues/" + key).transaction((issue) => {
-    issue[attr] = value;
+function updateAttribute(
+  path: string,
+  attr: string,
+  value: string | number | null
+) {
+  database.ref(path).transaction((object) => {
+    object[attr] = value;
 
-    return issue;
+    return object;
   });
+}
+
+function updateIssue(key: string, attr: string, value: string | number | null) {
+  updateAttribute(`issues/${key}`, attr, value);
 }
 
 function removeIssue(key: string) {
   database.ref(`issues/${key}`).remove();
-}
-
-interface Issue {
-  name: string;
-  cost: number;
 }
 
 function TextInput(
@@ -78,41 +122,40 @@ function TextInput(
 ) {
   return (
     <input
-      className="appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded py-3 px-4"
+      className="appearance-none block w-full bg-gray-200 text-gray-700 border rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
       type="text"
       {...props}
     />
   );
 }
 
-function NumberInput(
-  props: DetailedHTMLProps<
-    InputHTMLAttributes<HTMLInputElement>,
-    HTMLInputElement
-  >
-) {
+interface NumberInputProps {
+  value?: number;
+  placeholder?: string;
+  onChange: (val: number | null) => void;
+}
+
+function NumberInput({ onChange, ...props }: NumberInputProps) {
   return (
     <input
       type="number"
-      className="outline-none focus:outline-none text-center w-full bg-gray-300 font-semibold text-md hover:text-black focus:text-black  md:text-basecursor-default flex items-center text-gray-700  outline-none"
+      className="appearance-none block w-full bg-gray-200 text-gray-700 border rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
+      onChange={(event) => {
+        const val = event.target.value;
+        const parsedVal = val ? parseFloat(val) : null;
+
+        onChange(parsedVal);
+      }}
       {...props}
-    ></input>
+    />
   );
 }
 
 function Issues() {
-  const issues = useFirebase<Issue>("issues") || {};
+  const [issues] = useFirebase<{ [key: string]: Issue }>("issues");
 
   return (
     <>
-      <button
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        onClick={() => {
-          insertIssue();
-        }}
-      >
-        Add Issue
-      </button>
       <table className="table-auto">
         <thead>
           <tr>
@@ -122,7 +165,7 @@ function Issues() {
           </tr>
         </thead>
         <tbody>
-          {Object.entries(issues).map(([key, issue]) => {
+          {Object.entries(issues || {}).map(([key, issue]) => {
             return (
               <tr key={key}>
                 <td className="border px-4 py-2">
@@ -136,12 +179,8 @@ function Issues() {
                 <td className="border px-4 py-2">
                   <NumberInput
                     value={issue.cost}
-                    onChange={(event) => {
-                      updateIssue(
-                        key,
-                        "cost",
-                        event.target.value ? parseInt(event.target.value) : 0
-                      );
+                    onChange={(val: number | null) => {
+                      updateIssue(key, "cost", val);
                     }}
                   />
                 </td>
@@ -159,39 +198,100 @@ function Issues() {
           })}
         </tbody>
       </table>
+      <button
+        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        onClick={() => {
+          insertIssue();
+        }}
+      >
+        Add Issue
+      </button>
     </>
   );
 }
 
-class Cost {
-  #issues: Issue[];
-
-  constructor({ issues }: { issues: Issue[] }) {
-    this.#issues = issues;
-  }
-
-  get total() {
-    return this.#issues.reduce((total, issue) => {
-      return total + issue.cost;
-    }, 0);
-  }
-}
-
 function Summary() {
-  const issues = useFirebase<Issue>("issues") || {};
+  const [issues] = useFirebase<Issue>("issues");
+  const [home] = useFirebase<HomeData>("home");
 
   const cost = new Cost({
-    issues: Object.values(issues),
+    issues: Object.values(issues || {}),
+    home: home || {
+      baseCost: 0,
+      countyTaxRate: 0,
+    },
   });
 
-  return <>Total Cost: {cost.total}</>;
+  return (
+    <>
+      <p>Total Cost: {cost.total}</p>
+      <p>Annual Tax Cost: {cost.annualTaxes}</p>
+    </>
+  );
+}
+
+function Basics() {
+  const [basics, setAttribute] = useFirebase<HomeData>("home");
+
+  return (
+    <form className="w-full max-w-lg">
+      <div className="flex flex-wrap -mx-3 mb-6">
+        <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
+          <label
+            className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+            htmlFor="grid-first-name"
+          >
+            Base Price
+          </label>
+          <NumberInput
+            placeholder="800000"
+            value={basics?.baseCost}
+            onChange={(val: number | null) => {
+              setAttribute("baseCost", val);
+            }}
+          />
+        </div>
+        <div className="w-full md:w-1/2 px-3">
+          <label
+            className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+            htmlFor="grid-last-name"
+          >
+            County Tax Rate (%)
+          </label>
+          <NumberInput
+            placeholder={"0.785"}
+            value={basics?.countyTaxRate}
+            onChange={(val) => {
+              setAttribute("countyTaxRate", val);
+            }}
+          />
+        </div>
+      </div>
+    </form>
+  );
+}
+
+function Header() {
+  return (
+    <nav className="flex items-center justify-between flex-wrap bg-teal-500 p-6">
+      <div className="flex items-center flex-shrink-0 text-white mr-6">
+        <span className="font-semibold text-xl tracking-tight">
+          Home Cost Calculator
+        </span>
+      </div>
+    </nav>
+  );
 }
 
 export default function Home() {
   return (
-    <>
-      <Issues />
-      <Summary />
-    </>
+    <div className="w-full h-full flex justify-center bg-gray-200 ">
+      <div className="w-full max-w-xl bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+        <Header />
+        <Basics />
+        <Issues />
+        <Summary />
+      </div>
+    </div>
   );
 }
