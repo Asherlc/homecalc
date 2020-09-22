@@ -29,7 +29,7 @@ class Cost {
 
   get totalIssueCost() {
     return this.#issues.reduce((total, issue) => {
-      return total + issue.cost;
+      return add(total, issue.cost);
     }, 0);
   }
 
