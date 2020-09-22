@@ -47,6 +47,15 @@ function insertIssue() {
   });
 }
 
+function updateIssue(key: string, attr: string, value: string | number) {
+  console.log(key, attr, value);
+  database.ref("issues/" + key).transaction((issue) => {
+    issue[attr] = value;
+
+    return issue;
+  });
+}
+
 function removeIssue(key: string) {
   database.ref(`issues/${key}`).remove();
 }
@@ -56,7 +65,7 @@ interface Issue {
   cost: number;
 }
 
-export default function Home() {
+function Issues() {
   const issues = useFirebase<Issue>("issues") || {};
 
   return (
@@ -70,20 +79,31 @@ export default function Home() {
       </button>
       {Object.entries(issues).map(([key, issue]) => {
         return (
-          <fieldset key={issue.name}>
+          <fieldset key={key}>
             <label className="text-gray-700 text-sm font-bold mb-2">
               Issue Name
               <input
                 type="text"
+                value={issue.name}
                 className="shadow appearance-none border rounded py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
-                onChange={(event) => {}}
+                onChange={(event) => {
+                  updateIssue(key, "name", event.target.value);
+                }}
               />
             </label>
             <label className="text-gray-700 text-sm font-bold mb-2">
               Cost
               <input
                 type="number"
+                value={issue.cost}
                 className="shadow appearance-none border rounded py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+                onChange={(event) => {
+                  updateIssue(
+                    key,
+                    "cost",
+                    event.target.value ? parseInt(event.target.value) : 0
+                  );
+                }}
               />
             </label>
             <button
@@ -96,6 +116,25 @@ export default function Home() {
           </fieldset>
         );
       })}
+    </>
+  );
+}
+
+function Summary() {
+  const issues = useFirebase<Issue>("issues") || {};
+
+  const totalCost = Object.values(issues).reduce((total, issue) => {
+    return total + issue.cost;
+  }, 0);
+
+  return <>Total Cost: {totalCost}</>;
+}
+
+export default function Home() {
+  return (
+    <>
+      <Issues />
+      <Summary />
     </>
   );
 }
