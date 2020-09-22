@@ -1,4 +1,9 @@
-import { useEffect, useState } from "react";
+import {
+  DetailedHTMLProps,
+  InputHTMLAttributes,
+  useEffect,
+  useState,
+} from "react";
 import * as firebase from "firebase/app";
 import "firebase/database";
 
@@ -65,69 +70,121 @@ interface Issue {
   cost: number;
 }
 
+function TextInput(
+  props: DetailedHTMLProps<
+    InputHTMLAttributes<HTMLInputElement>,
+    HTMLInputElement
+  >
+) {
+  return (
+    <input
+      className="appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded py-3 px-4"
+      type="text"
+      {...props}
+    />
+  );
+}
+
+function NumberInput(
+  props: DetailedHTMLProps<
+    InputHTMLAttributes<HTMLInputElement>,
+    HTMLInputElement
+  >
+) {
+  return (
+    <input
+      type="number"
+      className="outline-none focus:outline-none text-center w-full bg-gray-300 font-semibold text-md hover:text-black focus:text-black  md:text-basecursor-default flex items-center text-gray-700  outline-none"
+      {...props}
+    ></input>
+  );
+}
+
 function Issues() {
   const issues = useFirebase<Issue>("issues") || {};
 
   return (
     <>
       <button
+        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
         onClick={() => {
           insertIssue();
         }}
       >
         Add Issue
       </button>
-      {Object.entries(issues).map(([key, issue]) => {
-        return (
-          <fieldset key={key}>
-            <label className="text-gray-700 text-sm font-bold mb-2">
-              Issue Name
-              <input
-                type="text"
-                value={issue.name}
-                className="shadow appearance-none border rounded py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
-                onChange={(event) => {
-                  updateIssue(key, "name", event.target.value);
-                }}
-              />
-            </label>
-            <label className="text-gray-700 text-sm font-bold mb-2">
-              Cost
-              <input
-                type="number"
-                value={issue.cost}
-                className="shadow appearance-none border rounded py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
-                onChange={(event) => {
-                  updateIssue(
-                    key,
-                    "cost",
-                    event.target.value ? parseInt(event.target.value) : 0
-                  );
-                }}
-              />
-            </label>
-            <button
-              onClick={() => {
-                removeIssue(key);
-              }}
-            >
-              X
-            </button>
-          </fieldset>
-        );
-      })}
+      <table className="table-auto">
+        <thead>
+          <tr>
+            <th className="px-4 py-2">Issue</th>
+            <th className="px-4 py-2">Cost</th>
+            <th className="px-4 py-2"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(issues).map(([key, issue]) => {
+            return (
+              <tr key={key}>
+                <td className="border px-4 py-2">
+                  <TextInput
+                    value={issue.name}
+                    onChange={(event) => {
+                      updateIssue(key, "name", event.target.value);
+                    }}
+                  />
+                </td>
+                <td className="border px-4 py-2">
+                  <NumberInput
+                    value={issue.cost}
+                    onChange={(event) => {
+                      updateIssue(
+                        key,
+                        "cost",
+                        event.target.value ? parseInt(event.target.value) : 0
+                      );
+                    }}
+                  />
+                </td>
+                <td className="border px-4 py-2">
+                  <button
+                    onClick={() => {
+                      removeIssue(key);
+                    }}
+                  >
+                    X
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </>
   );
+}
+
+class Cost {
+  #issues: Issue[];
+
+  constructor({ issues }: { issues: Issue[] }) {
+    this.#issues = issues;
+  }
+
+  get total() {
+    return this.#issues.reduce((total, issue) => {
+      return total + issue.cost;
+    }, 0);
+  }
 }
 
 function Summary() {
   const issues = useFirebase<Issue>("issues") || {};
 
-  const totalCost = Object.values(issues).reduce((total, issue) => {
-    return total + issue.cost;
-  }, 0);
+  const cost = new Cost({
+    issues: Object.values(issues),
+  });
 
-  return <>Total Cost: {totalCost}</>;
+  return <>Total Cost: {cost.total}</>;
 }
 
 export default function Home() {
