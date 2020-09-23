@@ -6,6 +6,16 @@ import { useEffect, useRef, useState } from "react";
 import * as firebase from "firebase/app";
 import "firebase/database";
 
+const CHART_COLORS = {
+  red: "rgb(255, 99, 132)",
+  orange: "rgb(255, 159, 64)",
+  yellow: "rgb(255, 205, 86)",
+  green: "rgb(75, 192, 192)",
+  blue: "rgb(54, 162, 235)",
+  purple: "rgb(153, 102, 255)",
+  grey: "rgb(201, 203, 207)",
+};
+
 const MONTHS = [
   "January",
   "February",
@@ -20,6 +30,13 @@ const MONTHS = [
   "November",
   "December",
 ];
+
+const today = new Date();
+const inOneYear = addYears(today, 1);
+const monthsFromToday = eachMonthOfInterval({
+  start: today,
+  end: inOneYear,
+});
 
 interface HomeData {
   baseCost: number;
@@ -43,6 +60,10 @@ class Issue {
     return this.#data.cost;
   }
 
+  get name() {
+    return this.#data.name;
+  }
+
   get requiredInMonth() {
     if (!this.#data.requiredIn) {
       return null;
@@ -56,19 +77,35 @@ class Issue {
 
     return requiredInDate.getMonth();
   }
+
+  get costPerMonth() {
+    return monthsFromToday.map((date) => {
+      const monthIndex = date.getMonth();
+
+      if (this.requiredInMonth === monthIndex) {
+        return this.#data.cost || 0;
+      }
+
+      return 0;
+    });
+  }
+
+  get valid() {
+    return this.cost && this.name;
+  }
 }
 
 class Cost {
-  #issues: Issue[];
+  issues: Issue[];
   #home: HomeData;
 
   constructor({ issues, home }: { issues: IssueData[]; home: HomeData }) {
-    this.#issues = issues.map((data) => new Issue(data));
+    this.issues = issues.map((data) => new Issue(data));
     this.#home = home;
   }
 
   get totalIssueCost() {
-    return this.#issues
+    return this.issues
       .filter((issue) => issue.cost)
       .reduce((total, issue) => {
         return add(total, issue.cost as number);
@@ -86,17 +123,10 @@ class Cost {
   }
 
   get issuesGroupedByMonth() {
-    const today = new Date();
-    const inOneYear = addYears(today, 1);
-    const months = eachMonthOfInterval({
-      start: today,
-      end: inOneYear,
-    });
-
-    return months.map((date) => {
+    return monthsFromToday.map((date) => {
       const monthIndex = date.getMonth();
 
-      return this.#issues.filter(
+      return this.issues.filter(
         (issue) => issue.requiredInMonth === monthIndex && issue.cost
       );
     });
@@ -330,25 +360,9 @@ function TimeChart() {
         type: "bar",
         options: {
           scales: {
-            yAxes: [{ stacked: true }],
-          },
-        },
-        data: {
-          labels: cost.issuesGroupedByMonth.map(
-            (cost, index) => MONTHS[index % MONTHS.length]
-          ),
-          datasets: [
-            {
-              label: "Cost ($)",
-              stack: true,
-              data: cost.costPerMonth,
-            },
-          ],
-        },
-        options: {
-          scales: {
             yAxes: [
               {
+                stacked: true,
                 ticks: {
                   beginAtZero: true,
                 },
@@ -356,9 +370,23 @@ function TimeChart() {
             ],
           },
         },
+        data: {
+          labels: cost.issuesGroupedByMonth.map(
+            (cost, index) => MONTHS[index % MONTHS.length]
+          ),
+          datasets: cost.issues
+            .filter((issue) => issue.valid)
+            .map((issue, index) => {
+              return {
+                backgroundColor: Object.values(CHART_COLORS)[index],
+                label: issue.name,
+                data: issue.costPerMonth,
+              };
+            }),
+        },
       });
     }
-  }, [canvasRenderingContext2D, cost.costPerMonth]);
+  }, [canvasRenderingContext2D, cost.issues, cost.issuesGroupedByMonth]);
 
   return <canvas ref={canvasRef} width="400" height="400"></canvas>;
 }
