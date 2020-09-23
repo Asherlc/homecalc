@@ -1,36 +1,78 @@
+import * as chrono from "chrono-node";
+import { addYears, eachMonthOfInterval } from "date-fns";
+import Chart from "chart.js";
 import { add } from "lodash";
-import {
-  DetailedHTMLProps,
-  InputHTMLAttributes,
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useRef, useState } from "react";
 import * as firebase from "firebase/app";
 import "firebase/database";
+
+const MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
 interface HomeData {
   baseCost: number;
   countyTaxRate: number;
 }
 
-interface Issue {
-  name: string;
-  cost: number;
+interface IssueData {
+  name?: string;
+  cost?: number;
+  requiredIn?: string;
+}
+
+class Issue {
+  #data: IssueData;
+
+  constructor(data: IssueData) {
+    this.#data = data;
+  }
+
+  get cost() {
+    return this.#data.cost;
+  }
+
+  get requiredInMonth() {
+    if (!this.#data.requiredIn) {
+      return null;
+    }
+
+    const requiredInDate = chrono.parseDate(this.#data.requiredIn);
+
+    if (!requiredInDate) {
+      return null;
+    }
+
+    return requiredInDate.getMonth();
+  }
 }
 
 class Cost {
   #issues: Issue[];
   #home: HomeData;
 
-  constructor({ issues, home }: { issues: Issue[]; home: HomeData }) {
-    this.#issues = issues;
+  constructor({ issues, home }: { issues: IssueData[]; home: HomeData }) {
+    this.#issues = issues.map((data) => new Issue(data));
     this.#home = home;
   }
 
   get totalIssueCost() {
-    return this.#issues.reduce((total, issue) => {
-      return add(total, issue.cost);
-    }, 0);
+    return this.#issues
+      .filter((issue) => issue.cost)
+      .reduce((total, issue) => {
+        return add(total, issue.cost as number);
+      }, 0);
   }
 
   get total() {
@@ -41,6 +83,23 @@ class Cost {
     return Number(
       (this.#home.countyTaxRate / 100) * this.#home.baseCost
     ).toFixed(2);
+  }
+
+  get issuesGroupedByMonth() {
+    const today = new Date();
+    const inOneYear = addYears(today, 1);
+    const months = eachMonthOfInterval({
+      start: today,
+      end: inOneYear,
+    });
+
+    return months.map((date) => {
+      const monthIndex = date.getMonth();
+
+      return this.#issues.filter(
+        (issue) => issue.requiredInMonth === monthIndex && issue.cost
+      );
+    });
   }
 }
 
@@ -97,7 +156,7 @@ function insertIssue() {
 function updateAttribute(
   path: string,
   attr: string,
-  value: string | number | null
+  value: string | number | null | undefined
 ) {
   database.ref(path).transaction((object) => {
     object[attr] = value;
@@ -106,7 +165,11 @@ function updateAttribute(
   });
 }
 
-function updateIssue(key: string, attr: string, value: string | number | null) {
+function updateIssue(
+  key: string,
+  attr: string,
+  value: string | number | null | undefined
+) {
   updateAttribute(`issues/${key}`, attr, value);
 }
 
@@ -114,16 +177,21 @@ function removeIssue(key: string) {
   database.ref(`issues/${key}`).remove();
 }
 
-function TextInput(
-  props: DetailedHTMLProps<
-    InputHTMLAttributes<HTMLInputElement>,
-    HTMLInputElement
-  >
-) {
+function TextInput({
+  onChange,
+  ...props
+}: {
+  onChange: (val: string | undefined) => void;
+  value?: string;
+  placeholder?: string;
+}) {
   return (
     <input
       className="appearance-none block w-full bg-gray-200 text-gray-700 border rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
       type="text"
+      onChange={(e) => {
+        onChange(e.target.value);
+      }}
       {...props}
     />
   );
@@ -135,7 +203,7 @@ interface NumberInputProps {
   onChange: (val: number | null) => void;
 }
 
-function NumberInput({ onChange, ...props }: NumberInputProps) {
+function NumberInput({ onChange, value, ...props }: NumberInputProps) {
   return (
     <input
       type="number"
@@ -146,13 +214,14 @@ function NumberInput({ onChange, ...props }: NumberInputProps) {
 
         onChange(parsedVal);
       }}
+      value={value || ""}
       {...props}
     />
   );
 }
 
 function Issues() {
-  const [issues] = useFirebase<{ [key: string]: Issue }>("issues");
+  const [issues] = useFirebase<{ [key: string]: IssueData }>("issues");
 
   return (
     <>
@@ -161,6 +230,7 @@ function Issues() {
           <tr>
             <th className="px-4 py-2">Issue</th>
             <th className="px-4 py-2">Cost</th>
+            <th className="px-4 py-2">Required In</th>
             <th className="px-4 py-2"></th>
           </tr>
         </thead>
@@ -171,16 +241,24 @@ function Issues() {
                 <td className="border px-4 py-2">
                   <TextInput
                     value={issue.name}
-                    onChange={(event) => {
-                      updateIssue(key, "name", event.target.value);
+                    onChange={(val) => {
+                      updateIssue(key, "name", val);
                     }}
                   />
                 </td>
                 <td className="border px-4 py-2">
                   <NumberInput
                     value={issue.cost}
-                    onChange={(val: number | null) => {
+                    onChange={(val) => {
                       updateIssue(key, "cost", val);
+                    }}
+                  />
+                </td>
+                <td className="border px-4 py-2">
+                  <TextInput
+                    value={issue.requiredIn}
+                    onChange={(val) => {
+                      updateIssue(key, "requiredIn", val);
                     }}
                   />
                 </td>
@@ -211,7 +289,18 @@ function Issues() {
 }
 
 function Summary() {
-  const [issues] = useFirebase<Issue>("issues");
+  const cost = useCost();
+
+  return (
+    <>
+      <p>Total Cost: {cost.total}</p>
+      <p>Annual Tax Cost: {cost.annualTaxes}</p>
+    </>
+  );
+}
+
+function useCost() {
+  const [issues] = useFirebase<IssueData>("issues");
   const [home] = useFirebase<HomeData>("home");
 
   const cost = new Cost({
@@ -222,12 +311,56 @@ function Summary() {
     },
   });
 
-  return (
-    <>
-      <p>Total Cost: {cost.total}</p>
-      <p>Annual Tax Cost: {cost.annualTaxes}</p>
-    </>
-  );
+  return cost;
+}
+
+function TimeChart() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasRenderingContext2D:
+    | CanvasRenderingContext2D
+    | null
+    | undefined = canvasRef.current?.getContext("2d");
+
+  const cost = useCost();
+
+  useEffect(() => {
+    if (canvasRenderingContext2D) {
+      // eslint-disable-next-line no-new
+      new Chart(canvasRenderingContext2D, {
+        type: "bar",
+        options: {
+          scales: {
+            yAxes: [{ stacked: true }],
+          },
+        },
+        data: {
+          labels: cost.issuesGroupedByMonth.map(
+            (cost, index) => MONTHS[index % MONTHS.length]
+          ),
+          datasets: [
+            {
+              label: "Cost ($)",
+              stack: true,
+              data: cost.costPerMonth,
+            },
+          ],
+        },
+        options: {
+          scales: {
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: true,
+                },
+              },
+            ],
+          },
+        },
+      });
+    }
+  }, [canvasRenderingContext2D, cost.costPerMonth]);
+
+  return <canvas ref={canvasRef} width="400" height="400"></canvas>;
 }
 
 function Basics() {
@@ -246,7 +379,7 @@ function Basics() {
           <NumberInput
             placeholder="800000"
             value={basics?.baseCost}
-            onChange={(val: number | null) => {
+            onChange={(val) => {
               setAttribute("baseCost", val);
             }}
           />
@@ -291,6 +424,7 @@ export default function Home() {
         <Basics />
         <Issues />
         <Summary />
+        <TimeChart />
       </div>
     </div>
   );

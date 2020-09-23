@@ -11,8 +11,15 @@ module.exports = {
     "prettier/react",
     "prettier/standard",
   ],
-  parser: "babel-eslint",
-  plugins: ["json", "react", "@typescript-eslint", "prettier", "react-hooks"],
+  parser: "@typescript-eslint/parser",
+  plugins: [
+    "@babel",
+    "json",
+    "react",
+    "@typescript-eslint",
+    "prettier",
+    "react-hooks",
+  ],
   rules: {
     "prettier/prettier": "error",
     "react/react-in-jsx-scope": "off",
