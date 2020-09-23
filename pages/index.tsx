@@ -1,5 +1,5 @@
 import * as chrono from "chrono-node";
-import { addYears, eachMonthOfInterval } from "date-fns";
+import { addYears, eachMonthOfInterval, isSameMonth } from "date-fns";
 import Chart from "chart.js";
 import { add } from "lodash";
 import { useEffect, useRef, useState } from "react";
@@ -64,25 +64,17 @@ class Issue {
     return this.#data.name;
   }
 
-  get requiredInMonth() {
+  get requiredIn() {
     if (!this.#data.requiredIn) {
       return null;
     }
 
-    const requiredInDate = chrono.parseDate(this.#data.requiredIn);
-
-    if (!requiredInDate) {
-      return null;
-    }
-
-    return requiredInDate.getMonth();
+    return chrono.parseDate(this.#data.requiredIn);
   }
 
   get costPerMonth() {
     return monthsFromToday.map((date) => {
-      const monthIndex = date.getMonth();
-
-      if (this.requiredInMonth === monthIndex) {
+      if (this.requiredIn && isSameMonth(this.requiredIn, date)) {
         return this.#data.cost || 0;
       }
 
@@ -120,16 +112,6 @@ class Cost {
     return Number(
       (this.#home.countyTaxRate / 100) * this.#home.baseCost
     ).toFixed(2);
-  }
-
-  get issuesGroupedByMonth() {
-    return monthsFromToday.map((date) => {
-      const monthIndex = date.getMonth();
-
-      return this.issues.filter(
-        (issue) => issue.requiredInMonth === monthIndex && issue.cost
-      );
-    });
   }
 }
 
@@ -371,9 +353,7 @@ function TimeChart() {
           },
         },
         data: {
-          labels: cost.issuesGroupedByMonth.map(
-            (cost, index) => MONTHS[index % MONTHS.length]
-          ),
+          labels: monthsFromToday.map((date) => MONTHS[date.getMonth()]),
           datasets: cost.issues
             .filter((issue) => issue.valid)
             .map((issue, index) => {
@@ -386,7 +366,7 @@ function TimeChart() {
         },
       });
     }
-  }, [canvasRenderingContext2D, cost.issues, cost.issuesGroupedByMonth]);
+  }, [canvasRenderingContext2D, cost.issues]);
 
   return <canvas ref={canvasRef} width="400" height="400"></canvas>;
 }
