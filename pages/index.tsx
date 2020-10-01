@@ -429,6 +429,18 @@ function Basics() {
   return (
     <form className="w-full max-w-lg">
       <div className="flex flex-wrap -mx-3 mb-6">
+        <label
+          className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+          htmlFor="grid-first-name"
+        >
+          Address
+        </label>
+        <TextInput
+          value={currentHome.address}
+          onChange={(val) => {
+            updateHome(currentHome.key, "address", val);
+          }}
+        />
         <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
           <label
             className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
@@ -438,7 +450,7 @@ function Basics() {
           </label>
           <PriceInput
             placeholder="$800,000"
-            value={currentHome?.baseCost}
+            value={currentHome.baseCost}
             onChange={(val) => {
               updateHome(currentHome.key, "baseCost", val);
             }}
