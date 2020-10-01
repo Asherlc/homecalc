@@ -1,23 +1,20 @@
+import Select from "react-select";
 import { formatMoney, unformat as unformatMoney } from "accounting";
-import { parseDate } from "chrono-node";
-import { addYears, eachMonthOfInterval, isSameMonth } from "date-fns";
+import { addYears, eachMonthOfInterval } from "date-fns";
 import Chart from "chart.js";
 import { add } from "lodash";
-import { useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import * as firebase from "firebase/app";
 import "firebase/database";
+import { DEFAULT_COUNT_TAX_RATE, EmptyHome, Home } from "../src/models/Home";
+import { EmptyIssue, Issue } from "../src/models/Issue";
+import { FirebaseTable, modelFactory } from "../src/models/BaseModel";
 
-type FirebaseTable<T> = {
-  [key: string]: T;
-};
-
-interface IssueData {
+export interface IssueData {
   name?: string;
   cost?: number;
   requiredIn?: string;
 }
-
-type IssueTable = FirebaseTable<IssueData>;
 
 const CHART_COLORS = {
   red: "rgb(255, 99, 132)",
@@ -46,68 +43,23 @@ const MONTHS = [
 
 const today = new Date();
 const inOneYear = addYears(today, 1);
-const monthsFromToday = eachMonthOfInterval({
+export const monthsFromToday = eachMonthOfInterval({
   start: today,
   end: inOneYear,
 });
 
-interface HomeData {
-  baseCost: number;
-  countyTaxRate: number;
-}
-
-class Issue {
-  #data: IssueData;
-  key: string;
-
-  constructor(key: string, data: IssueData) {
-    this.#data = data;
-    this.key = key;
-  }
-
-  get cost() {
-    return this.#data.cost;
-  }
-
-  get name() {
-    return this.#data.name;
-  }
-
-  get requiredIn() {
-    if (!this.#data.requiredIn) {
-      return null;
-    }
-
-    return parseDate(this.#data.requiredIn);
-  }
-
-  get rawRequiredIn() {
-    return this.#data.requiredIn;
-  }
-
-  get costPerMonth() {
-    return monthsFromToday.map((date) => {
-      if (this.requiredIn && isSameMonth(this.requiredIn, date)) {
-        return this.#data.cost || 0;
-      }
-
-      return 0;
-    });
-  }
-
-  get valid() {
-    return this.cost && this.name;
-  }
+export interface HomeData {
+  baseCost?: number;
+  countyTaxRate?: number;
+  address?: string;
 }
 
 class Cost {
   issues: Issue[];
-  #home: HomeData;
+  #home: Home;
 
-  constructor({ issues, home }: { issues: IssueTable; home: HomeData }) {
-    this.issues = Object.entries(issues).map(
-      ([key, data]) => new Issue(key, data)
-    );
+  constructor({ issues, home }: { issues: Issue[]; home: Home }) {
+    this.issues = issues;
     this.#home = home;
   }
 
@@ -119,14 +71,20 @@ class Cost {
       }, 0);
   }
 
+  get baseCost(): number {
+    return this.#home.baseCost;
+  }
+
+  get countyTaxRate() {
+    return this.#home.countyTaxRate;
+  }
+
   get total() {
-    return add(this.totalIssueCost, this.#home.baseCost);
+    return add(this.totalIssueCost, this.baseCost);
   }
 
   get annualTaxes() {
-    return Number(
-      (this.#home.countyTaxRate / 100) * this.#home.baseCost
-    ).toFixed(2);
+    return Number((this.countyTaxRate / 100) * this.baseCost).toFixed(2);
   }
 }
 
@@ -146,9 +104,7 @@ if (firebase.apps.length === 0) {
 
 const database = firebase.database();
 
-type SetAttribute = (attribute: string, value: string | number | null) => void;
-
-function useFirebase<T>(path: string): [T | undefined, SetAttribute] {
+function useFirebase<T>(path: string): T | undefined {
   const [value, setValue] = useState();
   const ref = database.ref(path);
 
@@ -157,27 +113,13 @@ function useFirebase<T>(path: string): [T | undefined, SetAttribute] {
       setValue(snapshot.val());
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [path]);
 
-  function setAttribute(attribute: string, newValue: string | number | null) {
-    ref.transaction((object) => {
-      const nonNullObject = object || {};
-      nonNullObject[attribute] = newValue;
-
-      return nonNullObject;
-    });
-  }
-
-  return [value, setAttribute];
+  return value;
 }
 
-function insertIssue() {
-  const key = database.ref().child("issues").push().key;
-
-  database.ref("issues/" + key).set({
-    name: "",
-    cost: 0,
-  });
+async function insertRecord<T>(path: string, value: T) {
+  database.ref().child(path).push(value);
 }
 
 function updateAttribute(
@@ -190,6 +132,14 @@ function updateAttribute(
 
     return object;
   });
+}
+
+function updateHome(
+  key: string,
+  attr: string,
+  value: string | number | null | undefined
+) {
+  updateAttribute(`homes/${key}`, attr, value);
 }
 
 function updateIssue(
@@ -275,6 +225,10 @@ function PriceInput({
 function Issues() {
   const cost = useCost();
 
+  if (!cost) {
+    return null;
+  }
+
   return (
     <>
       <table className="table-auto">
@@ -331,7 +285,7 @@ function Issues() {
       <button
         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
         onClick={() => {
-          insertIssue();
+          insertRecord<IssueData>("issues", EmptyIssue);
         }}
       >
         Add Issue
@@ -343,6 +297,10 @@ function Issues() {
 function Summary() {
   const cost = useCost();
 
+  if (!cost) {
+    return null;
+  }
+
   return (
     <>
       <p>Total Cost: {cost.total}</p>
@@ -351,19 +309,26 @@ function Summary() {
   );
 }
 
+const CurrentHomeKeyContext = createContext<string | undefined>(undefined);
+
 function useCost() {
-  const [issues] = useFirebase<FirebaseTable<IssueData>>("issues");
-  const [home] = useFirebase<HomeData>("home");
+  const issuesData = useFirebase<FirebaseTable<IssueData>>("issues");
+  const homeKey = useContext(CurrentHomeKeyContext);
+  const homeData = useFirebase<HomeData>(`homes/${homeKey}`);
+  const home = homeKey && homeData ? new Home(homeKey, homeData) : null;
 
-  const cost = new Cost({
-    issues: issues || {},
-    home: home || {
-      baseCost: 0,
-      countyTaxRate: 0,
-    },
+  if (!home) {
+    return null;
+  }
+
+  const issues = issuesData
+    ? modelFactory<IssueData, Issue>(Issue, issuesData)
+    : [];
+
+  return new Cost({
+    issues: issues,
+    home: home,
   });
-
-  return cost;
 }
 
 function TimeChart() {
@@ -376,7 +341,7 @@ function TimeChart() {
   const cost = useCost();
 
   useEffect(() => {
-    if (canvasRenderingContext2D) {
+    if (canvasRenderingContext2D && cost) {
       // eslint-disable-next-line no-new
       new Chart(canvasRenderingContext2D, {
         type: "bar",
@@ -406,13 +371,60 @@ function TimeChart() {
         },
       });
     }
-  }, [canvasRenderingContext2D, cost.issues]);
+  }, [canvasRenderingContext2D, cost]);
 
   return <canvas ref={canvasRef} width="400" height="400"></canvas>;
 }
 
+function HomeSelector({
+  onChangeCurrentHomeKey,
+}: {
+  onChangeCurrentHomeKey: (val: string | undefined | null) => void;
+}) {
+  const homeDatas = useFirebase<FirebaseTable<HomeData>>("homes");
+  const homes = homeDatas ? modelFactory<HomeData, Home>(Home, homeDatas) : [];
+
+  return (
+    <div>
+      <Select
+        options={homes.map((home) => {
+          return {
+            value: home.key,
+            label: home.address,
+          };
+        })}
+        onChange={(result: any) => {
+          onChangeCurrentHomeKey(result?.value);
+        }}
+      />
+      <button
+        onClick={() => {
+          insertRecord<HomeData>("homes", EmptyHome);
+        }}
+      >
+        +
+      </button>
+    </div>
+  );
+}
+
+function useCurrentHome(): Home | null {
+  const currentHomeKey = useContext(CurrentHomeKeyContext);
+  const currentHomeData = useFirebase<HomeData>(`/homes/${currentHomeKey}`);
+
+  if (!currentHomeKey || !currentHomeData) {
+    return null;
+  }
+
+  return new Home(currentHomeKey, currentHomeData);
+}
+
 function Basics() {
-  const [basics, setAttribute] = useFirebase<HomeData>("home");
+  const currentHome = useCurrentHome();
+
+  if (!currentHome) {
+    return null;
+  }
 
   return (
     <form className="w-full max-w-lg">
@@ -426,9 +438,9 @@ function Basics() {
           </label>
           <PriceInput
             placeholder="$800,000"
-            value={basics?.baseCost}
+            value={currentHome?.baseCost}
             onChange={(val) => {
-              setAttribute("baseCost", val);
+              updateHome(currentHome.key, "baseCost", val);
             }}
           />
         </div>
@@ -440,10 +452,10 @@ function Basics() {
             County Tax Rate (%)
           </label>
           <NumberInput
-            placeholder={"0.785"}
-            value={basics?.countyTaxRate}
+            placeholder={DEFAULT_COUNT_TAX_RATE.toString()}
+            value={currentHome.countyTaxRate}
             onChange={(val) => {
-              setAttribute("countyTaxRate", val);
+              updateHome(currentHome.key, "countyTaxRate", val);
             }}
           />
         </div>
@@ -464,16 +476,21 @@ function Header() {
   );
 }
 
-export default function Home() {
+export default function HomeComponent() {
+  const [currentHomeKey, setCurrentHomeKey] = useState<string>();
+
   return (
-    <div className="w-full h-full flex justify-center bg-gray-200 ">
-      <div className="w-full max-w-xl bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-        <Header />
-        <Basics />
-        <Issues />
-        <Summary />
-        <TimeChart />
+    <CurrentHomeKeyContext.Provider value={currentHomeKey}>
+      <div className="w-full h-full flex justify-center bg-gray-200 ">
+        <div className="w-full max-w-xl bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+          <Header />
+          <HomeSelector onChangeCurrentHomeKey={setCurrentHomeKey} />
+          <Basics />
+          <Issues />
+          <Summary />
+          <TimeChart />
+        </div>
       </div>
-    </div>
+    </CurrentHomeKeyContext.Provider>
   );
 }
