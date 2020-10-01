@@ -1,28 +1,26 @@
-export type FirebaseTable<T> = {
-  [key: string]: T;
-};
+import { FirestoreRecord } from "../hooks/firebase";
 
 interface BaseModelInterface {}
 
 interface BaseModelConstructor<T, C> {
-  new (key: string, data: T): C;
+  new (id: string, data: T): C;
 }
 
 export default abstract class BaseModel<T> implements BaseModelInterface {
   protected data: T;
-  key: string;
+  id: string;
 
-  constructor(key: string, data: T) {
+  constructor(id: string, data: T) {
     this.data = data;
-    this.key = key;
+    this.id = id;
   }
 
   firebasePath: any;
 }
 
-export function modelFactory<T, C>(
+export function modelsFactory<T, C>(
   Constructor: BaseModelConstructor<T, C>,
-  data: FirebaseTable<T>
+  data: FirestoreRecord<T>[]
 ): C[] {
-  return Object.entries(data).map(([key, data]) => new Constructor(key, data));
+  return data.map(({ id, data }) => new Constructor(id, data));
 }

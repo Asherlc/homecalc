@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint . --ext .json,.js,.ts,.tsx"
+    "lint": "eslint . --ext .json,.js,.ts,.tsx",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@types/accounting": "^0.4.1",

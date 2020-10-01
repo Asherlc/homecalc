@@ -1,14 +1,46 @@
-import Select from "react-select";
+import "../src/firebaseConfig";
+import {
+  useFirestoreCollection,
+  useFirestoreDocument,
+} from "../src/hooks/firebase";
+import Creatable from "react-select/creatable";
 import { formatMoney, unformat as unformatMoney } from "accounting";
 import { addYears, eachMonthOfInterval } from "date-fns";
 import Chart from "chart.js";
 import { add } from "lodash";
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import {
+  ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import * as firebase from "firebase/app";
-import "firebase/database";
+import "firebase/firestore";
 import { DEFAULT_COUNT_TAX_RATE, EmptyHome, Home } from "../src/models/Home";
 import { EmptyIssue, Issue } from "../src/models/Issue";
-import { FirebaseTable, modelFactory } from "../src/models/BaseModel";
+import { modelsFactory } from "../src/models/BaseModel";
+// Required for side-effects
+
+function Button({
+  onClick,
+  children,
+}: {
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+      onClick={() => {
+        onClick();
+      }}
+    >
+      {children}
+    </button>
+  );
+}
 
 export interface IssueData {
   name?: string;
@@ -88,70 +120,39 @@ class Cost {
   }
 }
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDONcnazlcu-lAWcrC8XPdu0B4grH7benw",
-  authDomain: "homecalc-ef45c.firebaseapp.com",
-  databaseURL: "https://homecalc-ef45c.firebaseio.com",
-  projectId: "homecalc-ef45c",
-  storageBucket: "homecalc-ef45c.appspot.com",
-  messagingSenderId: "131552060892",
-  appId: "1:131552060892:web:b747681044bbb71578db19",
-};
+const database = firebase.firestore();
 
-if (firebase.apps.length === 0) {
-  firebase.initializeApp(firebaseConfig);
-}
-
-const database = firebase.database();
-
-function useFirebase<T>(path: string): T | undefined {
-  const [value, setValue] = useState();
-  const ref = database.ref(path);
-
-  useEffect(() => {
-    ref.on("value", (snapshot) => {
-      setValue(snapshot.val());
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [path]);
-
-  return value;
-}
-
-async function insertRecord<T>(path: string, value: T) {
-  database.ref().child(path).push(value);
+async function insertRecord<T>(collectionName: string, value: T) {
+  return (await database.collection(collectionName).add(value)).id;
 }
 
 function updateAttribute(
-  path: string,
+  collectionName: string,
+  id: string,
   attr: string,
-  value: string | number | null | undefined
+  value: any
 ) {
-  database.ref(path).transaction((object) => {
-    object[attr] = value;
-
-    return object;
-  });
+  database
+    .collection(collectionName)
+    .doc(id)
+    .set(
+      {
+        [attr]: value,
+      },
+      { merge: true }
+    );
 }
 
-function updateHome(
-  key: string,
-  attr: string,
-  value: string | number | null | undefined
-) {
-  updateAttribute(`homes/${key}`, attr, value);
+function updateHome(id: string, attr: string, value: any) {
+  updateAttribute(`homes`, id, attr, value);
 }
 
-function updateIssue(
-  key: string,
-  attr: string,
-  value: string | number | null | undefined
-) {
-  updateAttribute(`issues/${key}`, attr, value);
+function updateIssue(id: string, attr: string, value: any) {
+  updateAttribute(`issues`, id, attr, value);
 }
 
-function removeIssue(key: string) {
-  database.ref(`issues/${key}`).remove();
+function removeIssue(id: string) {
+  database.collection(`issues`).doc(id).delete();
 }
 
 interface TextInputProps {
@@ -243,12 +244,12 @@ function Issues() {
         <tbody>
           {cost.issues.map((issue) => {
             return (
-              <tr key={issue.key}>
+              <tr key={issue.id}>
                 <td className="border px-4 py-2">
                   <TextInput
                     value={issue.name}
                     onChange={(val) => {
-                      updateIssue(issue.key, "name", val);
+                      updateIssue(issue.id, "name", val);
                     }}
                   />
                 </td>
@@ -256,7 +257,7 @@ function Issues() {
                   <PriceInput
                     value={issue.cost}
                     onChange={(val) => {
-                      updateIssue(issue.key, "cost", val);
+                      updateIssue(issue.id, "cost", val);
                     }}
                   />
                 </td>
@@ -264,32 +265,31 @@ function Issues() {
                   <TextInput
                     value={issue.rawRequiredIn}
                     onChange={(val) => {
-                      updateIssue(issue.key, "requiredIn", val);
+                      updateIssue(issue.id, "requiredIn", val);
                     }}
                   />
                 </td>
                 <td className="border px-4 py-2">
-                  <button
+                  <Button
                     onClick={() => {
-                      removeIssue(issue.key);
+                      removeIssue(issue.id);
                     }}
                   >
                     X
-                  </button>
+                  </Button>
                 </td>
               </tr>
             );
           })}
         </tbody>
       </table>
-      <button
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+      <Button
         onClick={() => {
           insertRecord<IssueData>("issues", EmptyIssue);
         }}
       >
         Add Issue
-      </button>
+      </Button>
     </>
   );
 }
@@ -309,20 +309,20 @@ function Summary() {
   );
 }
 
-const CurrentHomeKeyContext = createContext<string | undefined>(undefined);
+const CurrentHomeIdContext = createContext<string | undefined>(undefined);
 
 function useCost() {
-  const issuesData = useFirebase<FirebaseTable<IssueData>>("issues");
-  const homeKey = useContext(CurrentHomeKeyContext);
-  const homeData = useFirebase<HomeData>(`homes/${homeKey}`);
-  const home = homeKey && homeData ? new Home(homeKey, homeData) : null;
+  const issuesData = useFirestoreCollection<IssueData>("issues");
+  const homeId = useContext(CurrentHomeIdContext);
+  const homeData = useFirestoreDocument<HomeData>(`homes`, homeId);
+  const home = homeId && homeData ? new Home(homeId, homeData) : null;
 
   if (!home) {
     return null;
   }
 
   const issues = issuesData
-    ? modelFactory<IssueData, Issue>(Issue, issuesData)
+    ? modelsFactory<IssueData, Issue>(Issue, issuesData)
     : [];
 
   return new Cost({
@@ -377,46 +377,49 @@ function TimeChart() {
 }
 
 function HomeSelector({
-  onChangeCurrentHomeKey,
+  onChangeCurrentHomeId,
 }: {
-  onChangeCurrentHomeKey: (val: string | undefined | null) => void;
+  onChangeCurrentHomeId: (val: string | undefined) => void;
 }) {
-  const homeDatas = useFirebase<FirebaseTable<HomeData>>("homes");
-  const homes = homeDatas ? modelFactory<HomeData, Home>(Home, homeDatas) : [];
+  const homeDatas = useFirestoreCollection<HomeData>("homes");
+  const homes = homeDatas ? modelsFactory<HomeData, Home>(Home, homeDatas) : [];
 
   return (
     <div>
-      <Select
+      <Creatable
         options={homes.map((home) => {
           return {
-            value: home.key,
+            value: home.id,
             label: home.address,
           };
         })}
         onChange={(result: any) => {
-          onChangeCurrentHomeKey(result?.value);
+          onChangeCurrentHomeId(result?.value);
+        }}
+        onCreateOption={async (address) => {
+          const newId = await insertRecord<HomeData>("homes", {
+            address,
+          });
+
+          onChangeCurrentHomeId(newId);
         }}
       />
-      <button
-        onClick={() => {
-          insertRecord<HomeData>("homes", EmptyHome);
-        }}
-      >
-        +
-      </button>
     </div>
   );
 }
 
 function useCurrentHome(): Home | null {
-  const currentHomeKey = useContext(CurrentHomeKeyContext);
-  const currentHomeData = useFirebase<HomeData>(`/homes/${currentHomeKey}`);
+  const currentHomeId = useContext(CurrentHomeIdContext);
+  const currentHomeData = useFirestoreDocument<HomeData>(
+    `homes`,
+    currentHomeId
+  );
 
-  if (!currentHomeKey || !currentHomeData) {
+  if (!currentHomeId || !currentHomeData) {
     return null;
   }
 
-  return new Home(currentHomeKey, currentHomeData);
+  return new Home(currentHomeId, currentHomeData);
 }
 
 function Basics() {
@@ -438,7 +441,7 @@ function Basics() {
         <TextInput
           value={currentHome.address}
           onChange={(val) => {
-            updateHome(currentHome.key, "address", val);
+            updateHome(currentHome.id, "address", val);
           }}
         />
         <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
@@ -452,7 +455,7 @@ function Basics() {
             placeholder="$800,000"
             value={currentHome.baseCost}
             onChange={(val) => {
-              updateHome(currentHome.key, "baseCost", val);
+              updateHome(currentHome.id, "baseCost", val);
             }}
           />
         </div>
@@ -467,7 +470,7 @@ function Basics() {
             placeholder={DEFAULT_COUNT_TAX_RATE.toString()}
             value={currentHome.countyTaxRate}
             onChange={(val) => {
-              updateHome(currentHome.key, "countyTaxRate", val);
+              updateHome(currentHome.id, "countyTaxRate", val);
             }}
           />
         </div>
@@ -489,20 +492,20 @@ function Header() {
 }
 
 export default function HomeComponent() {
-  const [currentHomeKey, setCurrentHomeKey] = useState<string>();
+  const [currentHomeId, setCurrentHomeId] = useState<string | undefined>();
 
   return (
-    <CurrentHomeKeyContext.Provider value={currentHomeKey}>
+    <CurrentHomeIdContext.Provider value={currentHomeId}>
       <div className="w-full h-full flex justify-center bg-gray-200 ">
         <div className="w-full max-w-xl bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
           <Header />
-          <HomeSelector onChangeCurrentHomeKey={setCurrentHomeKey} />
+          <HomeSelector onChangeCurrentHomeId={setCurrentHomeId} />
           <Basics />
           <Issues />
           <Summary />
           <TimeChart />
         </div>
       </div>
-    </CurrentHomeKeyContext.Provider>
+    </CurrentHomeIdContext.Provider>
   );
 }
