@@ -1,10 +1,23 @@
-import * as chrono from "chrono-node";
+import { formatMoney, unformat as unformatMoney } from "accounting";
+import { parseDate } from "chrono-node";
 import { addYears, eachMonthOfInterval, isSameMonth } from "date-fns";
 import Chart from "chart.js";
 import { add } from "lodash";
 import { useEffect, useRef, useState } from "react";
 import * as firebase from "firebase/app";
 import "firebase/database";
+
+type FirebaseTable<T> = {
+  [key: string]: T;
+};
+
+interface IssueData {
+  name?: string;
+  cost?: number;
+  requiredIn?: string;
+}
+
+type IssueTable = FirebaseTable<IssueData>;
 
 const CHART_COLORS = {
   red: "rgb(255, 99, 132)",
@@ -43,17 +56,13 @@ interface HomeData {
   countyTaxRate: number;
 }
 
-interface IssueData {
-  name?: string;
-  cost?: number;
-  requiredIn?: string;
-}
-
 class Issue {
   #data: IssueData;
+  key: string;
 
-  constructor(data: IssueData) {
+  constructor(key: string, data: IssueData) {
     this.#data = data;
+    this.key = key;
   }
 
   get cost() {
@@ -69,7 +78,11 @@ class Issue {
       return null;
     }
 
-    return chrono.parseDate(this.#data.requiredIn);
+    return parseDate(this.#data.requiredIn);
+  }
+
+  get rawRequiredIn() {
+    return this.#data.requiredIn;
   }
 
   get costPerMonth() {
@@ -91,8 +104,10 @@ class Cost {
   issues: Issue[];
   #home: HomeData;
 
-  constructor({ issues, home }: { issues: IssueData[]; home: HomeData }) {
-    this.issues = issues.map((data) => new Issue(data));
+  constructor({ issues, home }: { issues: IssueTable; home: HomeData }) {
+    this.issues = Object.entries(issues).map(
+      ([key, data]) => new Issue(key, data)
+    );
     this.#home = home;
   }
 
@@ -189,20 +204,25 @@ function removeIssue(key: string) {
   database.ref(`issues/${key}`).remove();
 }
 
-function TextInput({
-  onChange,
-  ...props
-}: {
+interface TextInputProps {
   onChange: (val: string | undefined) => void;
   value?: string;
   placeholder?: string;
-}) {
+}
+
+function TextInput({ onChange, ...props }: TextInputProps) {
   return (
     <input
       className="appearance-none block w-full bg-gray-200 text-gray-700 border rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
       type="text"
-      onChange={(e) => {
-        onChange(e.target.value);
+      onChange={(event) => {
+        const caret = event.target.selectionStart;
+        const element = event.target;
+        window.requestAnimationFrame(() => {
+          element.selectionStart = caret;
+          element.selectionEnd = caret;
+        });
+        onChange(event.target.value);
       }}
       {...props}
     />
@@ -232,8 +252,28 @@ function NumberInput({ onChange, value, ...props }: NumberInputProps) {
   );
 }
 
+function PriceInput({
+  placeholder,
+  onChange,
+  value,
+}: {
+  onChange: (val: number) => void;
+  value?: number;
+  placeholder?: string;
+}) {
+  return (
+    <TextInput
+      placeholder={placeholder}
+      value={formatMoney(value || 0)}
+      onChange={(newValue) => {
+        onChange(unformatMoney(newValue || ""));
+      }}
+    />
+  );
+}
+
 function Issues() {
-  const [issues] = useFirebase<{ [key: string]: IssueData }>("issues");
+  const cost = useCost();
 
   return (
     <>
@@ -247,37 +287,37 @@ function Issues() {
           </tr>
         </thead>
         <tbody>
-          {Object.entries(issues || {}).map(([key, issue]) => {
+          {cost.issues.map((issue) => {
             return (
-              <tr key={key}>
+              <tr key={issue.key}>
                 <td className="border px-4 py-2">
                   <TextInput
                     value={issue.name}
                     onChange={(val) => {
-                      updateIssue(key, "name", val);
+                      updateIssue(issue.key, "name", val);
                     }}
                   />
                 </td>
                 <td className="border px-4 py-2">
-                  <NumberInput
+                  <PriceInput
                     value={issue.cost}
                     onChange={(val) => {
-                      updateIssue(key, "cost", val);
+                      updateIssue(issue.key, "cost", val);
                     }}
                   />
                 </td>
                 <td className="border px-4 py-2">
                   <TextInput
-                    value={issue.requiredIn}
+                    value={issue.rawRequiredIn}
                     onChange={(val) => {
-                      updateIssue(key, "requiredIn", val);
+                      updateIssue(issue.key, "requiredIn", val);
                     }}
                   />
                 </td>
                 <td className="border px-4 py-2">
                   <button
                     onClick={() => {
-                      removeIssue(key);
+                      removeIssue(issue.key);
                     }}
                   >
                     X
@@ -312,11 +352,11 @@ function Summary() {
 }
 
 function useCost() {
-  const [issues] = useFirebase<IssueData>("issues");
+  const [issues] = useFirebase<FirebaseTable<IssueData>>("issues");
   const [home] = useFirebase<HomeData>("home");
 
   const cost = new Cost({
-    issues: Object.values(issues || {}),
+    issues: issues || {},
     home: home || {
       baseCost: 0,
       countyTaxRate: 0,
@@ -384,8 +424,8 @@ function Basics() {
           >
             Base Price
           </label>
-          <NumberInput
-            placeholder="800000"
+          <PriceInput
+            placeholder="$800,000"
             value={basics?.baseCost}
             onChange={(val) => {
               setAttribute("baseCost", val);

@@ -9,8 +9,10 @@
     "lint": "eslint . --ext .json,.js,.ts,.tsx"
   },
   "dependencies": {
+    "@types/accounting": "^0.4.1",
     "@types/chart.js": "^2.9.24",
     "@types/lodash": "^4.14.161",
+    "accounting": "^0.4.1",
     "autoprefixer": "9.8.6",
     "chart.js": "^2.9.3",
     "chrono-node": "^2.1.8",
