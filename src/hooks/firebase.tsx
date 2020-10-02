@@ -1,8 +1,10 @@
+import { DependencyList } from "react";
 import "../firebaseConfig";
 import * as firebase from "firebase/app";
 import "firebase/firestore";
 
-import { useEffect, useState } from "react";
+import { useAsync } from "react-use";
+import { firestoreConverter } from "../models/BaseModel";
 
 const database = firebase.firestore();
 
@@ -11,51 +13,60 @@ export type FirestoreRecord<T> = {
   data: T;
 };
 
-export function useFirestoreCollection<T>(
-  collectionName: string
-): FirestoreRecord<T>[] {
-  const [value, setValue] = useState<FirestoreRecord<T>[]>([]);
+type Query = firebase.firestore.QuerySnapshot<firebase.firestore.DocumentData>;
+
+export function useFirestoreQuerySnapshot(collectionName: string) {
   const collection = database.collection(collectionName);
 
-  useEffect(() => {
-    return collection.onSnapshot((collection) => {
-      const docs: FirestoreRecord<T>[] = [];
-
-      collection.forEach((doc) => {
-        docs.push({
-          id: doc.id,
-          data: doc.data() as T,
-        });
-      });
-      setValue(docs);
-    });
-  }, [collection]);
-
-  return value;
+  return useAsync<() => Promise<Query | undefined>>(async () => {
+    return collection.get();
+  });
 }
 
-export function useFirestoreDocument<T extends firebase.firestore.DocumentData>(
+type DocumentSnapshot = firebase.firestore.DocumentSnapshot<
+  firebase.firestore.DocumentData
+>;
+
+export function useFirestoreDocumentSnapshot(
   collectionName: string,
   id: string | undefined
-): T | undefined {
-  const [value, setValue] = useState<T>();
-  let doc: firebase.firestore.DocumentReference<
-    firebase.firestore.DocumentData
-  > | null = null;
-
-  if (id) {
-    doc = database.collection(collectionName).doc(id);
-  }
-
-  useEffect(() => {
-    if (!doc) {
-      return undefined;
+) {
+  return useAsync<() => Promise<DocumentSnapshot | undefined>>(async () => {
+    if (id) {
+      return database.collection(collectionName).doc(id).get();
     }
+  }, [id]);
+}
 
-    return doc.onSnapshot((snapshot) => {
-      setValue(snapshot.data() as T);
-    });
-  }, [doc]);
+export function useFirestoreCollectionConverter<M>(
+  collectionName: string,
+  Model: any
+) {
+  const collection = database.collection(collectionName);
 
-  return value;
+  return useAsync(async () => {
+    return (
+      await collection.withConverter(firestoreConverter(Model)).get()
+    ).docs.map((doc) => {
+      return doc.data();
+    }) as M[];
+  });
+}
+
+export function useFirestoreDocumentConverter<M>(
+  getDocument: () =>
+    | firebase.firestore.DocumentReference<firebase.firestore.DocumentData>
+    | undefined,
+  Model: any,
+  deps: DependencyList | undefined
+) {
+  const document = getDocument();
+
+  return useAsync<() => Promise<M | undefined>>(async () => {
+    return document
+      ? ((await (
+          await document.withConverter(firestoreConverter(Model)).get()
+        ).data()) as M)
+      : undefined;
+  }, deps);
 }

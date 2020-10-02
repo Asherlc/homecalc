@@ -1,14 +1,22 @@
 import { parseDate } from "chrono-node";
 import { isSameMonth } from "date-fns";
-import { IssueData, monthsFromToday } from "../../pages/index";
-import BaseModel from "./BaseModel";
+import { IssueData, monthsFromToday } from "../../src/components/Home";
+import { BaseModelInterface } from "./BaseModel";
 
 export const EmptyIssue: IssueData = {
   cost: 0,
   name: "",
 };
 
-export class Issue extends BaseModel<IssueData> {
+export class Issue implements BaseModelInterface {
+  protected data: IssueData;
+  id: string;
+
+  constructor(id: string, data: IssueData) {
+    this.data = data;
+    this.id = id;
+  }
+
   get cost() {
     return this.data.cost;
   }
@@ -41,5 +49,9 @@ export class Issue extends BaseModel<IssueData> {
 
   get valid() {
     return this.cost && this.name;
+  }
+
+  toFirestore() {
+    return this.data;
   }
 }
