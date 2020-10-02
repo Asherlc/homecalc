@@ -15,7 +15,7 @@ import { TextInput, PriceInput } from "./inputs";
 import { Alert } from "@material-ui/lab";
 import { Issues } from "./Issues";
 import { TimeChart } from "./TimeChart";
-import { Card, Grid, CardContent } from "@material-ui/core";
+import { Card, Grid, CardContent, CircularProgress } from "@material-ui/core";
 
 function ErrorAlert({ children }: { children: ReactNode }) {
   return <Alert severity="error">{children}</Alert>;
@@ -114,7 +114,7 @@ function Summary() {
   const cost = useCost();
 
   if (!cost) {
-    return null;
+    return <CircularProgress />;
   }
 
   return (
@@ -154,7 +154,7 @@ function Basics() {
   const currentHome = useCurrentHome();
 
   if (!currentHome) {
-    return <>Loading home</>;
+    return <CircularProgress />;
   }
 
   return (
