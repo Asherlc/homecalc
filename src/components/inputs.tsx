@@ -1,7 +1,7 @@
 import { isNumber } from "lodash";
 import TextField from "@material-ui/core/TextField";
 import { formatMoney, unformat as unformatMoney } from "accounting";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function PriceInput({
   placeholder,
@@ -42,6 +42,10 @@ export function TextInput({
   ...props
 }: TextInputProps) {
   const [val, setVal] = useState(value);
+
+  useEffect(() => {
+    setVal(value);
+  }, [value]);
 
   return (
     <TextField
