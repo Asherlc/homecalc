@@ -273,12 +273,12 @@ function useCost() {
 
   const issues = useFirestoreCollectionConverter<Issue>(
     () => {
-      return home
+      return home?.id
         ? database.collection("issues").where("homeId", "==", home.id)
         : undefined;
     },
     Issue,
-    [home]
+    [home?.id]
   );
 
   if (!home || !issues) {

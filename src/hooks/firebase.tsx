@@ -54,11 +54,12 @@ export function useFirestoreCollectionConverter<M>(
   >();
 
   useEffect(() => {
+    console.log("useEffectin", deps);
     return collection?.onSnapshot((snapshot) => {
       setSnapshot(snapshot);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [collection, ...(deps || [])]);
+  }, deps);
 
   if (snapshot) {
     const models: typeof Model[] = [];
