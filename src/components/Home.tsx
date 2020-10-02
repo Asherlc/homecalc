@@ -1,7 +1,6 @@
 import "../firebaseConfig";
 import { formatMoney } from "accounting";
 import { useFirestoreCollectionConverter } from "../hooks/firebase";
-import { addYears, eachMonthOfInterval } from "date-fns";
 import { add } from "lodash";
 import { ReactNode } from "react";
 import * as firebase from "firebase/app";
@@ -21,38 +20,6 @@ function ErrorAlert({ children }: { children: ReactNode }) {
   return <Alert severity="error">{children}</Alert>;
 }
 
-export const CHART_COLORS = {
-  red: "rgb(255, 99, 132)",
-  orange: "rgb(255, 159, 64)",
-  yellow: "rgb(255, 205, 86)",
-  green: "rgb(75, 192, 192)",
-  blue: "rgb(54, 162, 235)",
-  purple: "rgb(153, 102, 255)",
-  grey: "rgb(201, 203, 207)",
-};
-
-export const MONTHS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
-const today = new Date();
-const inOneYear = addYears(today, 1);
-export const monthsFromToday = eachMonthOfInterval({
-  start: today,
-  end: inOneYear,
-});
-
 class Cost {
   issues: Issue[];
   home: Home;
@@ -64,9 +31,9 @@ class Cost {
 
   get totalIssueCost() {
     return this.issues
-      .filter((issue) => issue.cost)
+      .filter((issue) => issue.buyerCost)
       .reduce((total, issue) => {
-        return add(total, issue.cost as number);
+        return add(total, issue.buyerCost as number);
       }, 0);
   }
 
@@ -197,7 +164,7 @@ export default function HomeComponent() {
         <Grid item xs={12}>
           <Basics />
         </Grid>
-        <Grid item>
+        <Grid item xs={12}>
           <Issues />
         </Grid>
         <Grid item>

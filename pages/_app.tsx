@@ -6,7 +6,7 @@ import Typography from "@material-ui/core/Typography";
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <Container maxWidth="sm">
+    <Container>
       <CssBaseline />
       <Typography component="div">
         <Component {...pageProps} />

@@ -8,10 +8,12 @@ export interface IssueData {
   cost?: number;
   requiredIn?: string;
   homeId?: string;
+  sellerPercent?: number;
 }
 
 export const EmptyIssue: IssueData = {
   cost: 0,
+  sellerPercent: 0,
   name: "",
 };
 
@@ -25,11 +27,19 @@ export class Issue implements BaseModelInterface {
   }
 
   get cost() {
-    return this.data.cost;
+    return this.data.cost || 0;
   }
 
   get name() {
     return this.data.name;
+  }
+
+  get buyerCost() {
+    return this.cost * ((100 - this.sellerPercent) / 100);
+  }
+
+  get sellerPercent() {
+    return this.data.sellerPercent || 0;
   }
 
   get requiredIn() {
@@ -42,16 +52,6 @@ export class Issue implements BaseModelInterface {
 
   get rawRequiredIn() {
     return this.data.requiredIn;
-  }
-
-  get costPerMonth() {
-    return monthsFromToday.map((date) => {
-      if (this.requiredIn && isSameMonth(this.requiredIn, date)) {
-        return this.data.cost || 0;
-      }
-
-      return 0;
-    });
   }
 
   get valid() {

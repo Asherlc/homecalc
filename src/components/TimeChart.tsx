@@ -1,53 +1,64 @@
-import Paper from "@material-ui/core/Paper";
-import Chart from "chart.js";
-import { useEffect, useRef } from "react";
-import { useCost, monthsFromToday, MONTHS, CHART_COLORS } from "./Home";
+import { addYears, eachMonthOfInterval, format } from "date-fns";
+import { Paper, CircularProgress } from "@material-ui/core";
+import { useCost } from "./Home";
+import {
+  Chart,
+  BarSeries,
+  Title,
+  ArgumentAxis,
+  ValueAxis,
+} from "@devexpress/dx-react-chart-material-ui";
+import { Animation } from "@devexpress/dx-react-chart";
+
+const today = new Date();
+const inOneYear = addYears(today, 1);
+export const monthsFromToday = eachMonthOfInterval({
+  start: today,
+  end: inOneYear,
+});
 
 export function TimeChart() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const canvasRenderingContext2D:
-    | CanvasRenderingContext2D
-    | null
-    | undefined = canvasRef.current?.getContext("2d");
-
   const cost = useCost();
 
-  useEffect(() => {
-    if (canvasRenderingContext2D && cost) {
-      // eslint-disable-next-line no-new
-      new Chart(canvasRenderingContext2D, {
-        type: "bar",
-        options: {
-          scales: {
-            yAxes: [
-              {
-                stacked: true,
-                ticks: {
-                  beginAtZero: true,
-                },
-              },
-            ],
-          },
-        },
-        data: {
-          labels: monthsFromToday.map((date) => MONTHS[date.getMonth()]),
-          datasets: cost.issues
-            .filter((issue) => issue.valid)
-            .map((issue, index) => {
-              return {
-                backgroundColor: Object.values(CHART_COLORS)[index],
-                label: issue.name,
-                data: issue.costPerMonth,
-              };
-            }),
-        },
-      });
-    }
-  }, [canvasRenderingContext2D, cost]);
+  if (!cost) {
+    return <CircularProgress />;
+  }
+
+  const chartData = monthsFromToday.map((date) => {
+    const monthIssues = cost.issues.reduce((hash, issue) => {
+      return {
+        ...hash,
+        [issue.name || ""]:
+          issue.requiredIn?.getMonth() === date.getMonth()
+            ? issue.buyerCost
+            : 0,
+      };
+    }, {});
+    const month = {
+      month: format(date, "MMMM"),
+    };
+
+    return { ...month, ...monthIssues };
+  });
 
   return (
     <Paper>
-      <canvas ref={canvasRef} width="100%" height="100%"></canvas>
+      <Chart data={chartData}>
+        <ArgumentAxis />
+        <ValueAxis />
+        {cost.issues.map((issue) => {
+          return (
+            <BarSeries
+              key={issue.name}
+              name={issue.name || ""}
+              valueField={issue.name}
+              argumentField={"month"}
+            />
+          );
+        })}
+        <Title text="World population" />
+        <Animation />
+      </Chart>
     </Paper>
   );
 }

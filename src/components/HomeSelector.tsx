@@ -76,7 +76,7 @@ function Selector({ homes }: { homes: Home[] }) {
       <InputLabel>Select a home</InputLabel>
       <Select
         autoWidth={true}
-        value={currentHome?.id}
+        value={currentHome?.id || ""}
         onChange={(event) => {
           router.push(`/homes/${event.target.value}`);
         }}
@@ -105,7 +105,7 @@ export function HomeSelector() {
       <Grid item xs={6}>
         <Selector homes={homes} />
       </Grid>
-      <Grid item justify="center" xs={6}>
+      <Grid item xs={6}>
         <HomeCreator />
       </Grid>
     </Grid>

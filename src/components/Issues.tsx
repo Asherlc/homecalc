@@ -11,6 +11,7 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Slider,
 } from "@material-ui/core";
 import { Delete, Add } from "@material-ui/icons";
 import { insertRecord } from "../firebaseUtils";
@@ -41,6 +42,7 @@ export function Issues() {
             <TableCell>Issue</TableCell>
             <TableCell>Cost</TableCell>
             <TableCell>Required In</TableCell>
+            <TableCell>% Seller Pays</TableCell>
             <TableCell></TableCell>
           </TableRow>
         </TableHead>
@@ -70,6 +72,16 @@ export function Issues() {
                     onChange={(val) => {
                       updateIssue(issue.id, "requiredIn", val);
                     }}
+                  />
+                </TableCell>
+                <TableCell>
+                  <Slider
+                    value={issue.sellerPercent}
+                    onChange={(e, val) => {
+                      updateIssue(issue.id, "sellerPercent", val);
+                    }}
+                    defaultValue={0}
+                    valueLabelDisplay="on"
                   />
                 </TableCell>
                 <TableCell>
