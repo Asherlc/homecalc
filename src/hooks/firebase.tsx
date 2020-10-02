@@ -39,18 +39,37 @@ export function useFirestoreDocumentSnapshot(
 }
 
 export function useFirestoreCollectionConverter<M>(
-  collectionName: string,
-  Model: any
+  getCollection: () =>
+    | firebase.firestore.CollectionReference<firebase.firestore.DocumentData>
+    | firebase.firestore.Query<firebase.firestore.DocumentData>
+    | undefined,
+  Model: any,
+  deps: DependencyList | undefined
 ) {
-  const collection = database.collection(collectionName);
+  const collection = getCollection();
 
-  return useAsync(async () => {
-    return (
-      await collection.withConverter(firestoreConverter(Model)).get()
-    ).docs.map((doc) => {
-      return doc.data();
-    }) as M[];
-  });
+  const [snapshot, setSnapshot] = useState<
+    | firebase.firestore.QuerySnapshot<firebase.firestore.DocumentData>
+    | undefined
+  >();
+
+  useEffect(() => {
+    return collection?.onSnapshot((snapshot) => {
+      setSnapshot(snapshot);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [collection, ...(deps || [])]);
+
+  if (snapshot) {
+    const models: typeof Model[] = [];
+
+    snapshot.forEach((doc) => {
+      models.push(new Model(doc.id, doc.data()));
+    });
+    console.log(models);
+
+    return models;
+  }
 }
 
 export function useFirestoreDocumentConverter<M>(
@@ -66,7 +85,6 @@ export function useFirestoreDocumentConverter<M>(
 
   useEffect(() => {
     return document?.onSnapshot((snapshot) => {
-      console.log("snapshlt reci");
       setSnapshot(snapshot);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps

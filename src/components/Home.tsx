@@ -1,10 +1,5 @@
 import "../firebaseConfig";
-import {
-  useFirestoreCollectionConverter,
-  useFirestoreDocumentSnapshot,
-  useFirestoreDocumentConverter,
-} from "../hooks/firebase";
-import Creatable from "react-select/creatable";
+import { useFirestoreCollectionConverter } from "../hooks/firebase";
 import { formatMoney, unformat as unformatMoney } from "accounting";
 import { addYears, eachMonthOfInterval } from "date-fns";
 import Chart from "chart.js";
@@ -14,8 +9,9 @@ import * as firebase from "firebase/app";
 import "firebase/firestore";
 import { DEFAULT_COUNT_TAX_RATE, EmptyHome, Home } from "../models/Home";
 import { EmptyIssue, Issue } from "../models/Issue";
-import { HomeData } from "../types/HomeData";
-import { useRouter } from "next/router";
+import { HomeSelector } from "./HomeSelector";
+import { useCurrentHome } from "../hooks/useCurrentHome";
+import { Header } from "./Header";
 
 function ErrorAlert({ children }: { children: ReactNode }) {
   return (
@@ -52,6 +48,7 @@ export interface IssueData {
   name?: string;
   cost?: number;
   requiredIn?: string;
+  homeId?: string;
 }
 
 const CHART_COLORS = {
@@ -88,11 +85,11 @@ export const monthsFromToday = eachMonthOfInterval({
 
 class Cost {
   issues: Issue[];
-  #home: Home;
+  home: Home;
 
   constructor({ issues, home }: { issues: Issue[]; home: Home }) {
     this.issues = issues;
-    this.#home = home;
+    this.home = home;
   }
 
   get totalIssueCost() {
@@ -104,11 +101,11 @@ class Cost {
   }
 
   get baseCost(): number {
-    return this.#home.baseCost;
+    return this.home.baseCost;
   }
 
   get countyTaxRate() {
-    return this.#home.countyTaxRate;
+    return this.home.countyTaxRate;
   }
 
   get total() {
@@ -289,7 +286,10 @@ function Issues() {
       </table>
       <Button
         onClick={() => {
-          insertRecord<IssueData>("issues", EmptyIssue);
+          insertRecord<IssueData>("issues", {
+            ...EmptyIssue,
+            homeId: cost.home.id,
+          });
         }}
       >
         Add Issue
@@ -316,9 +316,14 @@ function Summary() {
 function useCost() {
   const home = useCurrentHome();
 
-  const { value: issues } = useFirestoreCollectionConverter<Issue>(
-    "issues",
-    Issue
+  const issues = useFirestoreCollectionConverter<Issue>(
+    () => {
+      return home
+        ? database.collection("issues").where("homeId", "==", home.id)
+        : undefined;
+    },
+    Issue,
+    [home]
   );
 
   if (!home || !issues) {
@@ -376,61 +381,11 @@ function TimeChart() {
   return <canvas ref={canvasRef} width="400" height="400"></canvas>;
 }
 
-export function HomeSelector() {
-  const router = useRouter();
-  const { value: homes, error } = useFirestoreCollectionConverter<Home>(
-    "homes",
-    Home
-  );
-
-  if (error) {
-    return <ErrorAlert>{error.toString()}</ErrorAlert>;
-  }
-
-  if (!homes) {
-    return null;
-  }
-
-  return (
-    <div>
-      <Creatable
-        options={homes.map((home: Home) => {
-          return {
-            value: home.id,
-            label: home.address,
-          };
-        })}
-        onChange={(result: any) => {
-          router.push(`/homes/${result?.value}`);
-        }}
-        onCreateOption={async (address) => {
-          const newId = await insertRecord<HomeData>("homes", {
-            address,
-          });
-        }}
-      />
-    </div>
-  );
-}
-
-function useCurrentHome(): Home | null {
-  const router = useRouter();
-  const homeId = router.query.id;
-  const home = useFirestoreDocumentConverter<Home>(
-    () =>
-      homeId ? database.collection("homes").doc(homeId as string) : undefined,
-    Home,
-    [homeId]
-  );
-
-  return home;
-}
-
 function Basics() {
   const currentHome = useCurrentHome();
 
   if (!currentHome) {
-    return "Loading home";
+    return <>Loading home</>;
   }
 
   return (
@@ -483,21 +438,7 @@ function Basics() {
   );
 }
 
-export function Header() {
-  return (
-    <nav className="flex items-center justify-between flex-wrap bg-teal-500 p-6">
-      <div className="flex items-center flex-shrink-0 text-white mr-6">
-        <span className="font-semibold text-xl tracking-tight">
-          Home Cost Calculator
-        </span>
-      </div>
-    </nav>
-  );
-}
-
 export default function HomeComponent() {
-  const [currentHomeId, setCurrentHomeId] = useState<string | undefined>();
-
   return (
     <div className="w-full h-full flex justify-center bg-gray-200 ">
       <div className="w-full max-w-xl bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">

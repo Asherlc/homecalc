@@ -1,4 +1,5 @@
-import { Header, HomeSelector } from "../src/components/Home";
+import { Header } from "../src/components/Header";
+import { HomeSelector } from "../src/components/HomeSelector";
 
 export default function Index() {
   return (
