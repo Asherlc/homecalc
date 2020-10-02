@@ -1,5 +1,5 @@
 import { isNumber } from "lodash";
-import TextField from "@material-ui/core/TextField";
+import { TextField } from "@material-ui/core";
 import { formatMoney, unformat as unformatMoney } from "accounting";
 import { useEffect, useState } from "react";
 
@@ -50,7 +50,9 @@ export function TextInput({
   return (
     <TextField
       value={format(val || "")}
-      type="text"
+      inputProps={{
+        "data-lpignore": true,
+      }}
       onChange={(event) => {
         const caret = event.target.selectionStart;
         const element = event.target;
