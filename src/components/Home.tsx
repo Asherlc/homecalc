@@ -212,12 +212,16 @@ function PriceInput({
   value?: number;
   placeholder?: string;
 }) {
+  const [val, setVal] = useState(value);
+
   return (
     <TextInput
       placeholder={placeholder}
-      value={formatMoney(value || 0)}
+      value={formatMoney(val || 0)}
       onChange={(newValue) => {
-        onChange(unformatMoney(newValue || ""));
+        const price = unformatMoney(newValue || "");
+        onChange(price);
+        setVal(price);
       }}
     />
   );
