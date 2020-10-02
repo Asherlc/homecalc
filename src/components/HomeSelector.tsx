@@ -20,6 +20,7 @@ import { useState } from "react";
 
 import { insertRecord } from "../firebaseUtils";
 import { Home } from "../models/Home";
+import GoogleMapsAutoComplete from "./GoogleMapsAutoComplete";
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
@@ -34,32 +35,15 @@ function HomeCreator() {
 
   return (
     <FormControl className={classes.formControl}>
-      <TextField
-        label="Create Home"
-        placeholder="Address"
-        value={address}
-        onChange={(event) => {
-          setAddress(event.target.value);
-        }}
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              <IconButton
-                aria-label="toggle password visibility"
-                onClick={async () => {
-                  const id = await insertRecord("homes", {
-                    address,
-                  });
+      <GoogleMapsAutoComplete
+        onChange={async (place) => {
+          const id = await insertRecord("homes", {
+            place,
+          });
 
-                  router.push(`/homes/${id}`);
+          router.push(`/homes/${id}`);
 
-                  setAddress("");
-                }}
-              >
-                <Add />
-              </IconButton>
-            </InputAdornment>
-          ),
+          setAddress("");
         }}
       />
     </FormControl>
@@ -76,7 +60,7 @@ function Selector({ homes }: { homes: Home[] }) {
       <InputLabel>Select a home</InputLabel>
       <Select
         autoWidth={true}
-        value={currentHome?.id}
+        value={currentHome?.id || ""}
         onChange={(event) => {
           router.push(`/homes/${event.target.value}`);
         }}
@@ -105,7 +89,7 @@ export function HomeSelector() {
       <Grid item xs={6}>
         <Selector homes={homes} />
       </Grid>
-      <Grid item justify="center" xs={6}>
+      <Grid item xs={6}>
         <HomeCreator />
       </Grid>
     </Grid>
