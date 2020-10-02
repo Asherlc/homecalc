@@ -66,7 +66,6 @@ export function useFirestoreCollectionConverter<M>(
     snapshot.forEach((doc) => {
       models.push(new Model(doc.id, doc.data()));
     });
-    console.log(models);
 
     return models;
   }

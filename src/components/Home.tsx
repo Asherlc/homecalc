@@ -12,6 +12,9 @@ import { EmptyIssue, Issue } from "../models/Issue";
 import { HomeSelector } from "./HomeSelector";
 import { useCurrentHome } from "../hooks/useCurrentHome";
 import { Header } from "./Header";
+import { TextInput } from "./TextInputProps";
+import { Button } from "./Button";
+import { insertRecord } from "../firebaseUtils";
 
 function ErrorAlert({ children }: { children: ReactNode }) {
   return (
@@ -22,25 +25,6 @@ function ErrorAlert({ children }: { children: ReactNode }) {
       <strong className="font-bold">Holy smokes!</strong>
       <span className="block sm:inline">{children}</span>
     </div>
-  );
-}
-
-function Button({
-  onClick,
-  children,
-}: {
-  onClick: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-      onClick={() => {
-        onClick();
-      }}
-    >
-      {children}
-    </button>
   );
 }
 
@@ -117,11 +101,7 @@ class Cost {
   }
 }
 
-const database = firebase.firestore();
-
-async function insertRecord<T>(collectionName: string, value: T) {
-  return (await database.collection(collectionName).add(value)).id;
-}
+export const database = firebase.firestore();
 
 function updateAttribute(
   collectionName: string,
@@ -150,31 +130,6 @@ function updateIssue(id: string, attr: string, value: any) {
 
 function removeIssue(id: string) {
   database.collection(`issues`).doc(id).delete();
-}
-
-interface TextInputProps {
-  onChange: (val: string | undefined) => void;
-  value?: string;
-  placeholder?: string;
-}
-
-function TextInput({ onChange, ...props }: TextInputProps) {
-  return (
-    <input
-      className="appearance-none block w-full bg-gray-200 text-gray-700 border rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
-      type="text"
-      onChange={(event) => {
-        const caret = event.target.selectionStart;
-        const element = event.target;
-        window.requestAnimationFrame(() => {
-          element.selectionStart = caret;
-          element.selectionEnd = caret;
-        });
-        onChange(event.target.value);
-      }}
-      {...props}
-    />
-  );
 }
 
 interface NumberInputProps {

@@ -3,6 +3,40 @@ import { useCurrentHome } from "../hooks/useCurrentHome";
 
 import * as firebase from "firebase";
 import { useHomes } from "../hooks/useHomes";
+import { TextInput } from "./TextInputProps";
+import { useState } from "react";
+import { Button } from "./Button";
+import { insertRecord } from "../firebaseUtils";
+
+function HomeCreator() {
+  const [address, setAddress] = useState<string>();
+  const router = useRouter();
+
+  return (
+    <>
+      <TextInput
+        placeholder="123 Fake St"
+        value={address}
+        onChange={(value) => {
+          setAddress(value);
+        }}
+      />
+      <Button
+        onClick={async () => {
+          const id = await insertRecord("homes", {
+            address,
+          });
+
+          router.push(`/homes/${id}`);
+
+          setAddress("");
+        }}
+      >
+        Create New Home
+      </Button>
+    </>
+  );
+}
 
 export function HomeSelector() {
   const router = useRouter();
@@ -31,6 +65,7 @@ export function HomeSelector() {
           );
         })}
       </select>
+      <HomeCreator />
     </div>
   );
 }
