@@ -1,10 +1,9 @@
 import "../firebaseConfig";
 import { useFirestoreCollectionConverter } from "../hooks/firebase";
-import { formatMoney, unformat as unformatMoney } from "accounting";
 import { addYears, eachMonthOfInterval } from "date-fns";
 import Chart from "chart.js";
 import { add } from "lodash";
-import { ReactNode, useContext, useEffect, useRef, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import * as firebase from "firebase/app";
 import "firebase/firestore";
 import { DEFAULT_COUNT_TAX_RATE, EmptyHome, Home } from "../models/Home";
@@ -12,7 +11,7 @@ import { EmptyIssue, Issue } from "../models/Issue";
 import { HomeSelector } from "./HomeSelector";
 import { useCurrentHome } from "../hooks/useCurrentHome";
 import { Header } from "./Header";
-import { TextInput } from "./TextInputProps";
+import { TextInput, PriceInput } from "./inputs";
 import { Button } from "./Button";
 import { insertRecord } from "../firebaseUtils";
 
@@ -151,30 +150,6 @@ function NumberInput({ onChange, value, ...props }: NumberInputProps) {
       }}
       value={value || ""}
       {...props}
-    />
-  );
-}
-
-function PriceInput({
-  placeholder,
-  onChange,
-  value,
-}: {
-  onChange: (val: number) => void;
-  value?: number;
-  placeholder?: string;
-}) {
-  const [val, setVal] = useState(value);
-
-  return (
-    <TextInput
-      placeholder={placeholder}
-      value={formatMoney(val || 0)}
-      onChange={(newValue) => {
-        const price = unformatMoney(newValue || "");
-        onChange(price);
-        setVal(price);
-      }}
     />
   );
 }
