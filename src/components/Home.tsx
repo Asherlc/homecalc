@@ -15,7 +15,7 @@ import { TextInput, PriceInput } from "./inputs";
 import { Alert } from "@material-ui/lab";
 import { Issues } from "./Issues";
 import { TimeChart } from "./TimeChart";
-import { Card, Grid } from "@material-ui/core";
+import { Card, Grid, CardContent } from "@material-ui/core";
 
 function ErrorAlert({ children }: { children: ReactNode }) {
   return <Alert severity="error">{children}</Alert>;
@@ -119,8 +119,10 @@ function Summary() {
 
   return (
     <Card>
-      <p>Total Cost: {formatMoney(cost.total, undefined, 0)}</p>
-      <p>Annual Tax Cost: {formatMoney(cost.annualTaxes, undefined, 0)}</p>
+      <CardContent>
+        <p>Total Cost: {formatMoney(cost.total, undefined, 0)}</p>
+        <p>Annual Tax Cost: {formatMoney(cost.annualTaxes, undefined, 0)}</p>
+      </CardContent>
     </Card>
   );
 }
@@ -189,10 +191,10 @@ export default function HomeComponent() {
     <>
       <Header />
       <Grid container spacing={3}>
-        <Grid item>
+        <Grid item xs={12}>
           <HomeSelector />
         </Grid>
-        <Grid item>
+        <Grid item xs={12}>
           <Basics />
         </Grid>
         <Grid item>

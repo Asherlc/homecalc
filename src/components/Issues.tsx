@@ -2,6 +2,7 @@ import * as firebase from "firebase/app";
 import { EmptyIssue, IssueData } from "../models/Issue";
 import { TextInput, PriceInput } from "./inputs";
 import {
+  IconButton,
   Button,
   Table,
   TableBody,
@@ -72,13 +73,13 @@ export function Issues() {
                   />
                 </TableCell>
                 <TableCell>
-                  <Button
+                  <IconButton
                     onClick={() => {
                       removeIssue(issue.id);
                     }}
                   >
                     <Delete />
-                  </Button>
+                  </IconButton>
                 </TableCell>
               </TableRow>
             );
