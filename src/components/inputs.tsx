@@ -1,4 +1,5 @@
 import { isNumber } from "lodash";
+import TextField from "@material-ui/core/TextField";
 import { formatMoney, unformat as unformatMoney } from "accounting";
 import { useState } from "react";
 
@@ -6,18 +7,21 @@ export function PriceInput({
   placeholder,
   onChange,
   value,
+  ...props
 }: {
   onChange: (val: number) => void;
   value?: number;
   placeholder?: string;
+  label?: string;
 }) {
   return (
     <TextInput
       placeholder={placeholder}
       value={value?.toString()}
-      format={formatMoney}
+      format={(val) => formatMoney(val, undefined, 0)}
       unformat={(val) => unformatMoney(String(val))}
       onChange={(val) => onChange(isNumber(val) ? val : parseInt(val || ""))}
+      {...props}
     />
   );
 }
@@ -28,6 +32,7 @@ interface TextInputProps {
   placeholder?: string;
   format?: (val: string | number) => string | number;
   unformat?: (val: string | number) => string | number;
+  label?: string;
 }
 export function TextInput({
   onChange,
@@ -39,8 +44,7 @@ export function TextInput({
   const [val, setVal] = useState(value);
 
   return (
-    <input
-      className="appearance-none block w-full bg-gray-200 text-gray-700 border rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
+    <TextField
       value={format(val || "")}
       type="text"
       onChange={(event) => {

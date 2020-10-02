@@ -1,7 +1,14 @@
 import { parseDate } from "chrono-node";
 import { isSameMonth } from "date-fns";
-import { IssueData, monthsFromToday } from "../../src/components/Home";
+import { monthsFromToday } from "../../src/components/Home";
 import { BaseModelInterface } from "./BaseModel";
+
+export interface IssueData {
+  name?: string;
+  cost?: number;
+  requiredIn?: string;
+  homeId?: string;
+}
 
 export const EmptyIssue: IssueData = {
   cost: 0,
