@@ -54,6 +54,7 @@ export function useFirestoreCollectionConverter<M>(
   >();
 
   useEffect(() => {
+    console.log("useEffectin", deps);
     return collection?.onSnapshot((snapshot) => {
       setSnapshot(snapshot);
     });

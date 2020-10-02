@@ -1,6 +1,6 @@
 import * as firebase from "firebase/app";
 
-export const firebaseConfig = {
+const firebaseConfig = {
   apiKey: "AIzaSyDONcnazlcu-lAWcrC8XPdu0B4grH7benw",
   authDomain: "homecalc-ef45c.firebaseapp.com",
   databaseURL: "https://homecalc-ef45c.firebaseio.com",
