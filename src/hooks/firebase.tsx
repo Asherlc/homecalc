@@ -1,4 +1,4 @@
-import { DependencyList } from "react";
+import { DependencyList, useEffect, useState } from "react";
 import "../firebaseConfig";
 import * as firebase from "firebase/app";
 import "firebase/firestore";
@@ -62,11 +62,17 @@ export function useFirestoreDocumentConverter<M>(
 ) {
   const document = getDocument();
 
-  return useAsync<() => Promise<M | undefined>>(async () => {
-    return document
-      ? ((await (
-          await document.withConverter(firestoreConverter(Model)).get()
-        ).data()) as M)
-      : undefined;
-  }, deps);
+  const [snapshot, setSnapshot] = useState<any>();
+
+  useEffect(() => {
+    return document?.onSnapshot((snapshot) => {
+      console.log("snapshlt reci");
+      setSnapshot(snapshot);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [document, ...(deps || [])]);
+
+  if (snapshot) {
+    return new Model(snapshot.id, snapshot.data());
+  }
 }

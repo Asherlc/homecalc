@@ -310,14 +310,7 @@ function Summary() {
 }
 
 function useCost() {
-  const router = useRouter();
-  const homeId = router.query.id;
-  const { value: home } = useFirestoreDocumentConverter<Home>(
-    () =>
-      homeId ? database.collection("homes").doc(homeId as string) : undefined,
-    Home,
-    [homeId]
-  );
+  const home = useCurrentHome();
 
   const { value: issues } = useFirestoreCollectionConverter<Issue>(
     "issues",
@@ -418,24 +411,15 @@ export function HomeSelector() {
 
 function useCurrentHome(): Home | null {
   const router = useRouter();
-  const currentHomeId = router.query.id as string;
-  const {
-    value: currentHomeDocument,
-    error,
-    loading,
-  } = useFirestoreDocumentSnapshot(`homes`, currentHomeId);
+  const homeId = router.query.id;
+  const home = useFirestoreDocumentConverter<Home>(
+    () =>
+      homeId ? database.collection("homes").doc(homeId as string) : undefined,
+    Home,
+    [homeId]
+  );
 
-  console.log(currentHomeDocument, error, loading);
-
-  if (error) {
-    alert(error.toString());
-  }
-
-  if (!currentHomeDocument) {
-    return null;
-  }
-
-  return new Home(currentHomeId, currentHomeDocument.data() as HomeData);
+  return home;
 }
 
 function Basics() {
