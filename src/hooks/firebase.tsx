@@ -4,7 +4,6 @@ import * as firebase from "firebase/app";
 import "firebase/firestore";
 
 import { useAsync } from "react-use";
-import { firestoreConverter } from "../models/BaseModel";
 
 const database = firebase.firestore();
 
@@ -38,7 +37,7 @@ export function useFirestoreDocumentSnapshot(
   }, [id]);
 }
 
-export function useFirestoreCollectionConverter<M>(
+export function useFirestoreCollectionConverter(
   getCollection: () =>
     | firebase.firestore.CollectionReference<firebase.firestore.DocumentData>
     | firebase.firestore.Query<firebase.firestore.DocumentData>
@@ -71,7 +70,7 @@ export function useFirestoreCollectionConverter<M>(
   }
 }
 
-export function useFirestoreDocumentConverter<M>(
+export function useFirestoreDocumentConverter(
   getDocument: () =>
     | firebase.firestore.DocumentReference<firebase.firestore.DocumentData>
     | undefined,

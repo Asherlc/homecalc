@@ -1,6 +1,4 @@
 import { parseDate } from "chrono-node";
-import { isSameMonth } from "date-fns";
-import { monthsFromToday } from "../../src/components/Home";
 import { BaseModelInterface } from "./BaseModel";
 
 export interface IssueData {

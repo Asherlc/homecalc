@@ -2,7 +2,6 @@ import "../firebaseConfig";
 import { formatMoney } from "accounting";
 import { useFirestoreCollectionConverter } from "../hooks/firebase";
 import { add } from "lodash";
-import { ReactNode } from "react";
 import * as firebase from "firebase/app";
 import "firebase/firestore";
 import { DEFAULT_COUNT_TAX_RATE, Home } from "../models/Home";
@@ -11,14 +10,9 @@ import { HomeSelector } from "./HomeSelector";
 import { useCurrentHome } from "../hooks/useCurrentHome";
 import { Header } from "./Header";
 import { TextInput, PriceInput } from "./inputs";
-import { Alert } from "@material-ui/lab";
 import { Issues } from "./Issues";
 import { TimeChart } from "./TimeChart";
 import { Card, Grid, CardContent, CircularProgress } from "@material-ui/core";
-
-function ErrorAlert({ children }: { children: ReactNode }) {
-  return <Alert severity="error">{children}</Alert>;
-}
 
 class Cost {
   issues: Issue[];

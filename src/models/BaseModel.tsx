@@ -1,5 +1,4 @@
 import * as firebase from "firebase";
-import { FirestoreRecord } from "../hooks/firebase";
 
 export interface BaseModelInterface {
   id: string;

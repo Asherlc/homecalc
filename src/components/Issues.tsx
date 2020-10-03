@@ -89,7 +89,6 @@ function IssueRow({ issue }: { issue: Issue }) {
 
 export function Issues() {
   const cost = useCost();
-  const [realtimeSellerPercent, setRealtimeSellerPercent] = useState();
 
   if (!cost) {
     return null;
