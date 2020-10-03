@@ -8,7 +8,6 @@ import { DEFAULT_COUNT_TAX_RATE, Home } from "../models/Home";
 import { Issue } from "../models/Issue";
 import { HomeSelector } from "./HomeSelector";
 import { useCurrentHome } from "../hooks/useCurrentHome";
-import { Header } from "./Header";
 import { TextInput, PriceInput } from "./inputs";
 import { Issues } from "./Issues";
 import { TimeChart } from "./TimeChart";
@@ -122,31 +121,37 @@ function Basics() {
   }
 
   return (
-    <form>
-      <TextInput
-        label="Address"
-        value={currentHome.address}
-        onChange={(val) => {
-          updateHome(currentHome.id, "address", val);
-        }}
-      />
-      <PriceInput
-        label="Base Price"
-        placeholder="$800,000"
-        value={currentHome.baseCost}
-        onChange={(val) => {
-          updateHome(currentHome.id, "baseCost", val);
-        }}
-      />
-      <TextInput
-        label="County Tax Rate (%)"
-        placeholder={DEFAULT_COUNT_TAX_RATE.toString()}
-        value={currentHome.countyTaxRate}
-        onChange={(val) => {
-          updateHome(currentHome.id, "countyTaxRate", val);
-        }}
-      />
-    </form>
+    <Grid container spacing={3}>
+      <Grid item xs={12} sm={4}>
+        <TextInput
+          label="Address"
+          value={currentHome.address}
+          onChange={(val) => {
+            updateHome(currentHome.id, "address", val);
+          }}
+        />
+      </Grid>
+      <Grid item xs={12} sm={4}>
+        <PriceInput
+          label="Base Price"
+          placeholder="$800,000"
+          value={currentHome.baseCost}
+          onChange={(val) => {
+            updateHome(currentHome.id, "baseCost", val);
+          }}
+        />
+      </Grid>
+      <Grid item xs={12} sm={4}>
+        <TextInput
+          label="County Tax Rate (%)"
+          placeholder={DEFAULT_COUNT_TAX_RATE.toString()}
+          value={currentHome.countyTaxRate}
+          onChange={(val) => {
+            updateHome(currentHome.id, "countyTaxRate", val);
+          }}
+        />
+      </Grid>
+    </Grid>
   );
 }
 

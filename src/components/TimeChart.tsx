@@ -3,7 +3,6 @@ import {
   Stack,
   Animation,
   SeriesRef,
-  ValueScale,
 } from "@devexpress/dx-react-chart";
 import { Plugin } from "@devexpress/dx-react-core";
 import { withStyles } from "@material-ui/core/styles";
@@ -21,7 +20,6 @@ import {
   Legend,
 } from "@devexpress/dx-react-chart-material-ui";
 import { useState } from "react";
-import { formatMoney } from "accounting";
 
 const legendStyles = () => ({
   root: {

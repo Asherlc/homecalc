@@ -5,7 +5,6 @@ import {
   FormControl,
   TextField,
   InputLabel,
-  makeStyles,
   InputAdornment,
   IconButton,
 } from "@material-ui/core";
@@ -20,19 +19,12 @@ import { useState } from "react";
 import { insertRecord } from "../firebaseUtils";
 import { Home } from "../models/Home";
 
-const useStyles = makeStyles((theme) => ({
-  formControl: {
-    minWidth: 200,
-  },
-}));
-
 function HomeCreator() {
   const [address, setAddress] = useState<string>();
   const router = useRouter();
-  const classes = useStyles();
 
   return (
-    <FormControl className={classes.formControl}>
+    <FormControl>
       <TextField
         label="Create Home"
         placeholder="Address"
@@ -67,11 +59,10 @@ function HomeCreator() {
 
 function Selector({ homes }: { homes: Home[] }) {
   const router = useRouter();
-  const classes = useStyles();
   const currentHome = useCurrentHome();
 
   return (
-    <FormControl className={classes.formControl}>
+    <FormControl>
       <InputLabel>Select a home</InputLabel>
       <Select
         autoWidth={true}
@@ -100,11 +91,11 @@ export function HomeSelector() {
   }
 
   return (
-    <Grid container spacing={2}>
-      <Grid item xs={6}>
+    <Grid container spacing={3}>
+      <Grid item xs={12} sm={6}>
         <Selector homes={homes} />
       </Grid>
-      <Grid item xs={6}>
+      <Grid item xs={12} sm={6}>
         <HomeCreator />
       </Grid>
     </Grid>
