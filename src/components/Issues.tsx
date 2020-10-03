@@ -1,5 +1,5 @@
 import * as firebase from "firebase/app";
-import { EmptyIssue, IssueData } from "../models/Issue";
+import { EmptyIssue, Issue, IssueData } from "../models/Issue";
 import { TextInput, PriceInput } from "./inputs";
 import {
   IconButton,
@@ -16,6 +16,7 @@ import {
 import { Delete, Add } from "@material-ui/icons";
 import { insertRecord } from "../firebaseUtils";
 import { useCost, updateAttribute } from "./Home";
+import { useEffect, useState } from "react";
 
 export const database = firebase.firestore();
 
@@ -27,8 +28,68 @@ export function removeIssue(id: string) {
   database.collection(`issues`).doc(id).delete();
 }
 
+function IssueRow({ issue }: { issue: Issue }) {
+  const [sellerPercent, setSellerPercent] = useState(issue.sellerPercent);
+
+  useEffect(() => {
+    setSellerPercent(issue.sellerPercent);
+  }, [issue.sellerPercent]);
+
+  return (
+    <TableRow>
+      <TableCell>
+        <TextInput
+          value={issue.name}
+          onChange={(val) => {
+            updateIssue(issue.id, "name", val);
+          }}
+        />
+      </TableCell>
+      <TableCell>
+        <PriceInput
+          value={issue.cost}
+          onChange={(val) => {
+            updateIssue(issue.id, "cost", val);
+          }}
+        />
+      </TableCell>
+      <TableCell>
+        <TextInput
+          value={issue.rawRequiredIn}
+          onChange={(val) => {
+            updateIssue(issue.id, "requiredIn", val);
+          }}
+        />
+      </TableCell>
+      <TableCell>
+        <Slider
+          value={sellerPercent}
+          onChangeCommitted={(e, val) => {
+            updateIssue(issue.id, "sellerPercent", val);
+          }}
+          onChange={(e, val) => {
+            setSellerPercent(val as number);
+          }}
+          defaultValue={0}
+          valueLabelDisplay="on"
+        />
+      </TableCell>
+      <TableCell>
+        <IconButton
+          onClick={() => {
+            removeIssue(issue.id);
+          }}
+        >
+          <Delete />
+        </IconButton>
+      </TableCell>
+    </TableRow>
+  );
+}
+
 export function Issues() {
   const cost = useCost();
+  const [realtimeSellerPercent, setRealtimeSellerPercent] = useState();
 
   if (!cost) {
     return null;
@@ -48,53 +109,7 @@ export function Issues() {
         </TableHead>
         <TableBody>
           {cost.issues.map((issue) => {
-            return (
-              <TableRow key={issue.id}>
-                <TableCell>
-                  <TextInput
-                    value={issue.name}
-                    onChange={(val) => {
-                      updateIssue(issue.id, "name", val);
-                    }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <PriceInput
-                    value={issue.cost}
-                    onChange={(val) => {
-                      updateIssue(issue.id, "cost", val);
-                    }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextInput
-                    value={issue.rawRequiredIn}
-                    onChange={(val) => {
-                      updateIssue(issue.id, "requiredIn", val);
-                    }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <Slider
-                    value={issue.sellerPercent}
-                    onChange={(e, val) => {
-                      updateIssue(issue.id, "sellerPercent", val);
-                    }}
-                    defaultValue={0}
-                    valueLabelDisplay="on"
-                  />
-                </TableCell>
-                <TableCell>
-                  <IconButton
-                    onClick={() => {
-                      removeIssue(issue.id);
-                    }}
-                  >
-                    <Delete />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            );
+            return <IssueRow key={issue.name} issue={issue} />;
           })}
         </TableBody>
       </Table>
