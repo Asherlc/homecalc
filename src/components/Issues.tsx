@@ -9,7 +9,7 @@ import {
   DeleteOutline,
   Edit,
 } from "@material-ui/icons";
-import { Input, Slider, Grid } from "@material-ui/core";
+import { Hidden, Input, Slider, Grid } from "@material-ui/core";
 import { insertRecord } from "../firebaseUtils";
 import { useCost, updateAttribute } from "./Home";
 import { forwardRef, useEffect, useState } from "react";
@@ -36,17 +36,19 @@ function OurSlider({ issue }: { issue: Issue }) {
   return (
     <div>
       <Grid container spacing={2} alignItems="center">
-        <Grid item xs>
-          <Slider
-            value={sellerPercent}
-            onChangeCommitted={(e, val) => {
-              updateIssue(issue.id, "sellerPercent", val);
-            }}
-            onChange={(e, val) => {
-              setSellerPercent(val as number);
-            }}
-          />
-        </Grid>
+        <Hidden smDown>
+          <Grid item xs>
+            <Slider
+              value={sellerPercent}
+              onChangeCommitted={(e, val) => {
+                updateIssue(issue.id, "sellerPercent", val);
+              }}
+              onChange={(e, val) => {
+                setSellerPercent(val as number);
+              }}
+            />
+          </Grid>
+        </Hidden>
         <Grid item>
           <Input
             value={sellerPercent}
