@@ -1,6 +1,6 @@
 import MaterialTable from "material-table";
 import * as firebase from "firebase/app";
-import { EmptyIssue, IssueData } from "../models/Issue";
+import { EmptyIssue, Issue, IssueData } from "../models/Issue";
 import {
   Remove,
   Clear,
@@ -9,9 +9,10 @@ import {
   DeleteOutline,
   Edit,
 } from "@material-ui/icons";
+import { Slider } from "@material-ui/core";
 import { insertRecord } from "../firebaseUtils";
 import { useCost, updateAttribute } from "./Home";
-import { forwardRef } from "react";
+import { forwardRef, useEffect, useState } from "react";
 
 export const database = firebase.firestore();
 
@@ -21,6 +22,30 @@ export function updateIssue(id: string, attr: string, value: any) {
 
 export function removeIssue(id: string) {
   database.collection(`issues`).doc(id).delete();
+}
+
+function OurSlider({ issue }: { issue: Issue }) {
+  console.log(issue);
+  const [sellerPercent, setSellerPercent] = useState(issue.sellerPercent);
+
+  useEffect(() => {
+    setSellerPercent(issue.sellerPercent);
+  }, [issue.sellerPercent]);
+
+  return (
+    <Slider
+      valueLabelDisplay="auto"
+      value={sellerPercent}
+      onChangeCommitted={(e, val) => {
+        updateIssue(issue.id, "sellerPercent", val);
+      }}
+      onChange={(e, val) => {
+        setSellerPercent(val as number);
+      }}
+      defaultValue={0}
+      max={100}
+    />
+  );
 }
 
 export function Issues() {
@@ -77,7 +102,15 @@ export function Issues() {
         { title: "Name", field: "name" },
         { title: "Cost", field: "cost" },
         { title: "Required In", field: "rawRequiredIn" },
-        { title: "% Seller Pays", field: "sellerPercent" },
+        {
+          title: "% Seller Pays",
+          field: "sellerPercent",
+          editable: "never",
+          // eslint-disable-next-line react/display-name
+          render: (rowData) => {
+            return <OurSlider issue={rowData} />;
+          },
+        },
       ]}
       data={cost.issues}
     />
