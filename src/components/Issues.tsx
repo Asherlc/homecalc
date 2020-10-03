@@ -108,7 +108,7 @@ export function Issues() {
         </TableHead>
         <TableBody>
           {cost.issues.map((issue) => {
-            return <IssueRow key={issue.name} issue={issue} />;
+            return <IssueRow key={issue.id} issue={issue} />;
           })}
         </TableBody>
       </Table>

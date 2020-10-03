@@ -1,5 +1,13 @@
+import {
+  EventTracker,
+  Stack,
+  Animation,
+  SeriesRef,
+  ValueScale,
+} from "@devexpress/dx-react-chart";
+import { Plugin } from "@devexpress/dx-react-core";
 import { withStyles } from "@material-ui/core/styles";
-import { Stack, Animation } from "@devexpress/dx-react-chart";
+
 import { addYears, eachMonthOfInterval, format } from "date-fns";
 import { Paper, CircularProgress } from "@material-ui/core";
 import { useCost } from "./Home";
@@ -8,9 +16,12 @@ import {
   BarSeries,
   Title,
   ArgumentAxis,
+  Tooltip,
   ValueAxis,
   Legend,
 } from "@devexpress/dx-react-chart-material-ui";
+import { useState } from "react";
+import { formatMoney } from "accounting";
 
 const legendStyles = () => ({
   root: {
@@ -47,6 +58,7 @@ export const monthsFromToday = eachMonthOfInterval({
 
 export function TimeChart() {
   const cost = useCost();
+  const [targetItem, setTargetItem] = useState<SeriesRef>();
 
   if (!cost) {
     return <CircularProgress />;
@@ -56,7 +68,7 @@ export function TimeChart() {
     const monthIssues = cost.issues.reduce((hash, issue) => {
       return {
         ...hash,
-        [issue.name || ""]:
+        [issue.id]:
           issue.requiredIn?.getMonth() === date.getMonth()
             ? issue.buyerCost
             : 0,
@@ -74,17 +86,20 @@ export function TimeChart() {
       <Chart data={chartData}>
         <ArgumentAxis />
         <ValueAxis />
-        {cost.issues.map((issue) => {
-          return (
-            <BarSeries
-              key={issue.name}
-              name={issue.name || ""}
-              valueField={issue.name}
-              argumentField={"month"}
-            />
-          );
-        })}
+        <Plugin name="ser">
+          {cost.issues.map((issue) => {
+            return (
+              <BarSeries
+                key={issue.id}
+                name={issue.name}
+                valueField={issue.id}
+                argumentField={"month"}
+              />
+            );
+          })}
+        </Plugin>
         <Title text="Cost Per Month" />
+
         <Legend
           position="bottom"
           rootComponent={Root as any}
@@ -98,6 +113,14 @@ export function TimeChart() {
           ]}
         />
         <Animation />
+        <EventTracker />
+        <Tooltip
+          contentComponent={() => {
+            return <>{targetItem?.series}</>;
+          }}
+          targetItem={targetItem}
+          onTargetItemChange={setTargetItem}
+        />
       </Chart>
     </Paper>
   );
