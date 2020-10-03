@@ -1,10 +1,9 @@
 import "../firebaseConfig";
 import { formatMoney } from "accounting";
 import { useFirestoreCollectionConverter } from "../hooks/firebase";
-import { add } from "lodash";
 import * as firebase from "firebase/app";
 import "firebase/firestore";
-import { DEFAULT_COUNT_TAX_RATE, Home } from "../models/Home";
+import { DEFAULT_COUNT_TAX_RATE } from "../models/Home";
 import { Issue } from "../models/Issue";
 import { HomeSelector } from "./HomeSelector";
 import { useCurrentHome } from "../hooks/useCurrentHome";
@@ -12,40 +11,7 @@ import { TextInput, PriceInput } from "./inputs";
 import { Issues } from "./Issues";
 import { TimeChart } from "./TimeChart";
 import { Card, Grid, CardContent, CircularProgress } from "@material-ui/core";
-
-class Cost {
-  issues: Issue[];
-  home: Home;
-
-  constructor({ issues, home }: { issues: Issue[]; home: Home }) {
-    this.issues = issues;
-    this.home = home;
-  }
-
-  get totalIssueCost() {
-    return this.issues
-      .filter((issue) => issue.buyerCost)
-      .reduce((total, issue) => {
-        return add(total, issue.buyerCost as number);
-      }, 0);
-  }
-
-  get baseCost(): number {
-    return this.home.baseCost;
-  }
-
-  get countyTaxRate() {
-    return this.home.countyTaxRate;
-  }
-
-  get total() {
-    return add(this.totalIssueCost, this.baseCost);
-  }
-
-  get annualTaxes() {
-    return Number((this.countyTaxRate / 100) * this.baseCost).toFixed(2);
-  }
-}
+import { Cost } from "../models/Cost";
 
 export const database = firebase.firestore();
 
@@ -80,6 +46,10 @@ function Summary() {
   return (
     <Card>
       <CardContent>
+        <p>
+          50% of City Transfer Tax:{" "}
+          {formatMoney(cost.cityTransferTax, undefined, 0)}
+        </p>
         <p>Total Cost: {formatMoney(cost.total, undefined, 0)}</p>
         <p>Annual Tax Cost: {formatMoney(cost.annualTaxes, undefined, 0)}</p>
       </CardContent>
