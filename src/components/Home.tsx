@@ -94,7 +94,10 @@ export function useCost() {
   const issues = useFirestoreCollectionConverter(
     () => {
       return home?.id
-        ? database.collection("issues").where("homeId", "==", home.id)
+        ? database
+            .collection("issues")
+            .where("homeId", "==", home.id)
+            .orderBy("createdAt")
         : undefined;
     },
     Issue,
@@ -150,7 +153,6 @@ function Basics() {
 export default function HomeComponent() {
   return (
     <>
-      <Header />
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <HomeSelector />

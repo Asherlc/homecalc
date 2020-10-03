@@ -117,6 +117,7 @@ export function Issues() {
           insertRecord<IssueData>("issues", {
             ...EmptyIssue,
             homeId: cost.home.id,
+            createdAt: new Date().toISOString(),
           });
         }}
       >

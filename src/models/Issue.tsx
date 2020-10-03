@@ -2,6 +2,7 @@ import { parseDate } from "chrono-node";
 import { BaseModelInterface } from "./BaseModel";
 
 export interface IssueData {
+  createdAt?: string;
   name?: string;
   cost?: number;
   requiredIn?: string;
@@ -26,6 +27,10 @@ export class Issue implements BaseModelInterface {
 
   get cost() {
     return this.data.cost || 0;
+  }
+
+  get createdAt() {
+    return new Date(this.data.createdAt as string);
   }
 
   get name() {
