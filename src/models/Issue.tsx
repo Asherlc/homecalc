@@ -45,7 +45,7 @@ export class Issue implements BaseModelInterface {
     return this.data.sellerPercent || 0;
   }
 
-  get requiredIn() {
+  get requiredInDate() {
     if (!this.data.requiredIn) {
       return null;
     }
@@ -53,7 +53,7 @@ export class Issue implements BaseModelInterface {
     return parseDate(this.data.requiredIn);
   }
 
-  get rawRequiredIn() {
+  get requiredIn() {
     return this.data.requiredIn;
   }
 

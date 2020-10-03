@@ -13,6 +13,7 @@ import { Input, Slider, Grid } from "@material-ui/core";
 import { insertRecord } from "../firebaseUtils";
 import { useCost, updateAttribute } from "./Home";
 import { forwardRef, useEffect, useState } from "react";
+import { formatMoney } from "accounting";
 
 export const database = firebase.firestore();
 
@@ -122,8 +123,17 @@ export function Issues() {
       }}
       columns={[
         { title: "Name", field: "name" },
-        { title: "Cost", field: "cost" },
-        { title: "Required In", field: "rawRequiredIn" },
+        {
+          title: "Cost",
+          field: "cost",
+          render: (rowData) => {
+            return formatMoney(rowData.cost, undefined, 0);
+          },
+        },
+        {
+          title: "Required In",
+          field: "requiredIn",
+        },
         {
           title: "% Seller Pays",
           field: "sellerPercent",

@@ -69,7 +69,7 @@ export function TimeChart() {
       return {
         ...hash,
         [issue.id]:
-          issue.requiredIn?.getMonth() === date.getMonth()
+          issue.requiredInDate?.getMonth() === date.getMonth()
             ? issue.buyerCost
             : 0,
       };
