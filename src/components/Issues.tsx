@@ -1,22 +1,17 @@
+import MaterialTable from "material-table";
 import * as firebase from "firebase/app";
-import { EmptyIssue, Issue, IssueData } from "../models/Issue";
-import { TextInput, PriceInput } from "./inputs";
+import { EmptyIssue, IssueData } from "../models/Issue";
 import {
-  IconButton,
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Slider,
-} from "@material-ui/core";
-import { Delete, Add } from "@material-ui/icons";
+  Remove,
+  Clear,
+  AddBox,
+  Check,
+  DeleteOutline,
+  Edit,
+} from "@material-ui/icons";
 import { insertRecord } from "../firebaseUtils";
 import { useCost, updateAttribute } from "./Home";
-import { useEffect, useState } from "react";
+import { forwardRef } from "react";
 
 export const database = firebase.firestore();
 
@@ -28,65 +23,6 @@ export function removeIssue(id: string) {
   database.collection(`issues`).doc(id).delete();
 }
 
-function IssueRow({ issue }: { issue: Issue }) {
-  const [sellerPercent, setSellerPercent] = useState(issue.sellerPercent);
-
-  useEffect(() => {
-    setSellerPercent(issue.sellerPercent);
-  }, [issue.sellerPercent]);
-
-  return (
-    <TableRow>
-      <TableCell>
-        <TextInput
-          value={issue.name}
-          onChange={(val) => {
-            updateIssue(issue.id, "name", val);
-          }}
-        />
-      </TableCell>
-      <TableCell>
-        <PriceInput
-          value={issue.cost}
-          onChange={(val) => {
-            updateIssue(issue.id, "cost", val);
-          }}
-        />
-      </TableCell>
-      <TableCell>
-        <TextInput
-          value={issue.rawRequiredIn}
-          onChange={(val) => {
-            updateIssue(issue.id, "requiredIn", val);
-          }}
-        />
-      </TableCell>
-      <TableCell>
-        <Slider
-          value={sellerPercent}
-          onChangeCommitted={(e, val) => {
-            updateIssue(issue.id, "sellerPercent", val);
-          }}
-          onChange={(e, val) => {
-            setSellerPercent(val as number);
-          }}
-          defaultValue={0}
-          valueLabelDisplay="on"
-        />
-      </TableCell>
-      <TableCell>
-        <IconButton
-          onClick={() => {
-            removeIssue(issue.id);
-          }}
-        >
-          <Delete />
-        </IconButton>
-      </TableCell>
-    </TableRow>
-  );
-}
-
 export function Issues() {
   const cost = useCost();
 
@@ -95,34 +31,55 @@ export function Issues() {
   }
 
   return (
-    <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Issue</TableCell>
-            <TableCell>Cost</TableCell>
-            <TableCell>Required In</TableCell>
-            <TableCell>% Seller Pays</TableCell>
-            <TableCell></TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {cost.issues.map((issue) => {
-            return <IssueRow key={issue.id} issue={issue} />;
-          })}
-        </TableBody>
-      </Table>
-      <Button
-        onClick={() => {
-          insertRecord<IssueData>("issues", {
+    <MaterialTable
+      title="Issues"
+      options={{
+        search: false,
+        paging: false,
+      }}
+      icons={{
+        // eslint-disable-next-line react/display-name
+        Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
+        // eslint-disable-next-line react/display-name
+        Check: forwardRef((props, ref) => <Check {...props} ref={ref} />),
+        // eslint-disable-next-line react/display-name
+        Clear: forwardRef((props, ref) => <Clear {...props} ref={ref} />),
+        // eslint-disable-next-line react/display-name
+        Delete: forwardRef((props, ref) => (
+          <DeleteOutline {...props} ref={ref} />
+        )),
+        // eslint-disable-next-line react/display-name
+        Edit: forwardRef((props, ref) => <Edit {...props} ref={ref} />),
+        // eslint-disable-next-line react/display-name
+        ThirdStateCheck: forwardRef((props, ref) => (
+          <Remove {...props} ref={ref} />
+        )),
+      }}
+      editable={{
+        onRowAdd: (newData: Record<string, any>) => {
+          return insertRecord<IssueData>("issues", {
             ...EmptyIssue,
             homeId: cost.home.id,
             createdAt: new Date().toISOString(),
+            ...(newData as IssueData),
           });
-        }}
-      >
-        <Add /> Add Issue
-      </Button>
-    </TableContainer>
+        },
+        onRowDelete: async (oldData) => {
+          removeIssue(oldData.id);
+        },
+      }}
+      cellEditable={{
+        onCellEditApproved: async (newValue, oldValue, rowData, columnDef) => {
+          updateIssue(rowData.id, columnDef.field as string, newValue);
+        },
+      }}
+      columns={[
+        { title: "Name", field: "name" },
+        { title: "Cost", field: "cost" },
+        { title: "Required In", field: "rawRequiredIn" },
+        { title: "% Seller Pays", field: "sellerPercent" },
+      ]}
+      data={cost.issues}
+    />
   );
 }
