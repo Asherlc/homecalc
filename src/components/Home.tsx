@@ -91,7 +91,7 @@ function Summary() {
 export function useCost() {
   const home = useCurrentHome();
 
-  const issues = useFirestoreCollectionConverter<Issue>(
+  const issues = useFirestoreCollectionConverter(
     () => {
       return home?.id
         ? database.collection("issues").where("homeId", "==", home.id)

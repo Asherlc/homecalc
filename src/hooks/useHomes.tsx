@@ -3,7 +3,7 @@ import { Home } from "../models/Home";
 import { database } from "../components/HomeSelector";
 
 export function useHomes() {
-  return useFirestoreCollectionConverter<Home>(
+  return useFirestoreCollectionConverter(
     () => {
       return database.collection("homes");
     },
