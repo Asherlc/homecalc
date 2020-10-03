@@ -9,7 +9,7 @@ import {
   DeleteOutline,
   Edit,
 } from "@material-ui/icons";
-import { Slider } from "@material-ui/core";
+import { Input, Slider, Grid } from "@material-ui/core";
 import { insertRecord } from "../firebaseUtils";
 import { useCost, updateAttribute } from "./Home";
 import { forwardRef, useEffect, useState } from "react";
@@ -33,18 +33,40 @@ function OurSlider({ issue }: { issue: Issue }) {
   }, [issue.sellerPercent]);
 
   return (
-    <Slider
-      valueLabelDisplay="auto"
-      value={sellerPercent}
-      onChangeCommitted={(e, val) => {
-        updateIssue(issue.id, "sellerPercent", val);
-      }}
-      onChange={(e, val) => {
-        setSellerPercent(val as number);
-      }}
-      defaultValue={0}
-      max={100}
-    />
+    <div>
+      <Grid container spacing={2} alignItems="center">
+        <Grid item xs>
+          <Slider
+            value={sellerPercent}
+            onChangeCommitted={(e, val) => {
+              updateIssue(issue.id, "sellerPercent", val);
+            }}
+            onChange={(e, val) => {
+              setSellerPercent(val as number);
+            }}
+          />
+        </Grid>
+        <Grid item>
+          <Input
+            value={sellerPercent}
+            margin="dense"
+            onChange={(e) => {
+              updateIssue(
+                issue.id,
+                "sellerPercent",
+                e.target.value ? parseInt(e.target.value) : undefined
+              );
+            }}
+            inputProps={{
+              step: 10,
+              min: 0,
+              max: 100,
+              type: "number",
+            }}
+          />
+        </Grid>
+      </Grid>
+    </div>
   );
 }
 
