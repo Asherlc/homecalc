@@ -42,6 +42,7 @@ export default function AddressForm({
   return (
     <Formik
       initialValues={initialValues || EmptyHome}
+      enableReinitialize={true}
       onSubmit={async (values, actions) => {
         if (onSubmit) {
           await onSubmit(values);
