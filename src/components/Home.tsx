@@ -104,14 +104,19 @@ export default function HomeComponent() {
         <Grid item xs={12}>
           <HomeSelector />
         </Grid>
-        <Grid item xs={4}>
-          <Card>
-            <CardContent>
-              <Basics />
-            </CardContent>
-          </Card>
+        <Grid item container sm={6} xs={12} spacing={3}>
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Basics />
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12}>
+            <Summary />
+          </Grid>
         </Grid>
-        <Grid>
+        <Grid item sm={6} xs={12}>
           <Card>
             <CardContent>
               <AddressEditor />
@@ -120,9 +125,6 @@ export default function HomeComponent() {
         </Grid>
         <Grid item xs={12}>
           <Issues />
-        </Grid>
-        <Grid item>
-          <Summary />
         </Grid>
         <Grid item xs={12}>
           <TimeChart />
