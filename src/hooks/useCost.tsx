@@ -80,8 +80,6 @@ export function useCost() {
     [home?.id]
   );
 
-  console.log(home, issues, cityTransferTaxPercents, countyPropertyTaxPercents);
-
   if (
     !home ||
     !issues ||
