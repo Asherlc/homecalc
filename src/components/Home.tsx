@@ -22,7 +22,7 @@ export function updateAttribute(
   database.collection(collectionName).doc(id).set(values, { merge: true });
 }
 
-function updateHome(id: string, values: HomeData) {
+function updateHome(id: string, values: Partial<HomeData>) {
   updateAttribute(`homes`, id, values);
 }
 
@@ -72,7 +72,7 @@ function Basics() {
           placeholder={DEFAULT_COUNT_TAX_RATE.toString()}
           value={currentHome.countyTaxRate}
           onChange={(val) => {
-            updateHome(currentHome.id, { countyTaxRate: val });
+            updateHome(currentHome.id, { countyTaxRate: val as number });
           }}
         />
       </Grid>
