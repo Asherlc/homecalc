@@ -11,14 +11,15 @@ import {
 } from "@material-ui/icons";
 import { Hidden, Input, Slider, Grid } from "@material-ui/core";
 import { insertRecord } from "../firebaseUtils";
-import { useCost, updateAttribute } from "./Home";
+import { updateAttribute } from "./Home";
+import { useCost } from "../hooks/useCost";
 import { forwardRef, useEffect, useState } from "react";
 import { formatMoney } from "accounting";
 
 export const database = firebase.firestore();
 
-export function updateIssue(id: string, attr: string, value: any) {
-  updateAttribute(`issues`, id, { [attr]: value });
+export function updateIssue(id: string, values: IssueData) {
+  updateAttribute(`issues`, id, values);
 }
 
 export function removeIssue(id: string) {
@@ -40,7 +41,7 @@ function OurSlider({ issue }: { issue: Issue }) {
             <Slider
               value={sellerPercent}
               onChangeCommitted={(e, val) => {
-                updateIssue(issue.id, "sellerPercent", val);
+                updateIssue(issue.id, { sellerPercent: val as number });
               }}
               onChange={(e, val) => {
                 setSellerPercent(val as number);
@@ -119,7 +120,7 @@ export function Issues() {
       }}
       cellEditable={{
         onCellEditApproved: async (newValue, oldValue, rowData, columnDef) => {
-          updateIssue(rowData.id, columnDef.field as string, newValue);
+          updateIssue(rowData.id, { [columnDef.field as string]: newValue });
         },
       }}
       columns={[

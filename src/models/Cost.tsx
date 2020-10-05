@@ -3,16 +3,25 @@ import { add } from "lodash";
 import { Home } from "./Home";
 import { Issue } from "./Issue";
 
-const OAKLAND_CITY_TRANSFER_TAX_PERCENT = 1.5;
 const CITY_TRANSFER_TAX_SPLIT = 0.5;
 
 export class Cost {
   issues: Issue[];
   home: Home;
+  cityTransferTaxPercent: number;
 
-  constructor({ issues, home }: { issues: Issue[]; home: Home }) {
+  constructor({
+    issues,
+    home,
+    cityTransferTaxPercent,
+  }: {
+    issues: Issue[];
+    home: Home;
+    cityTransferTaxPercent: number;
+  }) {
     this.issues = issues;
     this.home = home;
+    this.cityTransferTaxPercent = cityTransferTaxPercent;
   }
 
   get totalImmediateIssueCost() {
@@ -49,7 +58,7 @@ export class Cost {
   get cityTransferTax() {
     return (
       this.baseCost *
-      (OAKLAND_CITY_TRANSFER_TAX_PERCENT / 100) *
+      (this.cityTransferTaxPercent / 100) *
       CITY_TRANSFER_TAX_SPLIT
     );
   }

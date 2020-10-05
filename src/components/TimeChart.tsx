@@ -9,7 +9,7 @@ import { withStyles } from "@material-ui/core/styles";
 
 import { addYears, eachMonthOfInterval, format } from "date-fns";
 import { Paper, CircularProgress } from "@material-ui/core";
-import { useCost } from "./Home";
+import { useCost } from "../hooks/useCost";
 import {
   Chart,
   BarSeries,
