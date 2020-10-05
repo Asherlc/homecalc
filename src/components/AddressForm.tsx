@@ -6,6 +6,7 @@ import { EmptyHome } from "../models/Home";
 interface Values {
   address: string;
   city: string;
+  county: string;
 }
 
 interface Props {
@@ -51,7 +52,7 @@ export default function AddressForm({
                 component={TextField}
                 required
                 name="address"
-                label="Address line 1"
+                label="Address"
                 fullWidth
               />
             </Grid>
@@ -61,6 +62,15 @@ export default function AddressForm({
                 name="city"
                 required
                 label="City"
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Field
+                component={TextField}
+                name="county"
+                required
+                label="county"
                 fullWidth
               />
             </Grid>

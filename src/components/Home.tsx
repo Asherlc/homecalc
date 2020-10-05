@@ -41,7 +41,10 @@ function Summary() {
           {formatMoney(cost.cityTransferTax, undefined, 0)}
         </p>
         <p>Total Cost: {formatMoney(cost.total, undefined, 0)}</p>
-        <p>Annual Tax Cost: {formatMoney(cost.annualTaxes, undefined, 0)}</p>
+        <p>
+          Annual Tax Cost ({cost.countyPropertyTaxPercent}%):{" "}
+          {formatMoney(cost.annualTaxes, undefined, 0)}
+        </p>
       </CardContent>
     </Card>
   );
@@ -66,16 +69,6 @@ function Basics() {
           }}
         />
       </Grid>
-      <Grid item xs={12} sm={6}>
-        <TextInput
-          label="County Tax Rate (%)"
-          placeholder={DEFAULT_COUNT_TAX_RATE.toString()}
-          value={currentHome.countyTaxRate}
-          onChange={(val) => {
-            updateHome(currentHome.id, { countyTaxRate: val as number });
-          }}
-        />
-      </Grid>
     </Grid>
   );
 }
@@ -92,6 +85,7 @@ function AddressEditor() {
       initialValues={{
         address: currentHome.address,
         city: currentHome.city,
+        county: currentHome.county,
       }}
       onChange={(values) => {
         updateAttribute(`homes`, currentHome.id, values);

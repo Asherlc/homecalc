@@ -1,3 +1,5 @@
+import cheerio from "cheerio";
+import Tabletojson from "html-table-to-json";
 import xmlParser from "fast-xml-parser";
 import { useFirestoreCollectionConverter } from "./firebase";
 import { Issue } from "../models/Issue";
@@ -11,7 +13,7 @@ interface CityTransferTaxRate {
   rate: number;
 }
 
-function useCityTransferTaxRates() {
+function useCityTransferTaxPercents() {
   return useSWR(
     "https://cors-anywhere.herokuapp.com/https://www.vivaescrow.com/taxrates.xml",
     async (url) => {
@@ -34,9 +36,36 @@ function useCityTransferTaxRates() {
   );
 }
 
+function useCountyPropertyTaxPercents() {
+  return useSWR(
+    "https://cors-anywhere.herokuapp.com/https://smartasset.com/taxes/california-property-tax-calculator",
+    async (url) => {
+      const res = await fetch(url);
+
+      const html = await res.text();
+      const $ = cheerio.load(html);
+      const table = $('th:contains("Average Effective Property Tax Rate")')
+        .closest("table")
+        .parent();
+
+      const json = Tabletojson.parse(table.html());
+
+      const formatted = json.results[0].map((row: Record<string, string>) => {
+        return {
+          county: row.County,
+          rate: parseFloat(row["Average Effective Property Tax Rate"]),
+        };
+      });
+
+      return formatted as { county: string; rate: number }[];
+    }
+  );
+}
+
 export function useCost() {
   const home = useCurrentHome();
-  const { data: cityTransferTaxRates } = useCityTransferTaxRates();
+  const { data: cityTransferTaxPercents } = useCityTransferTaxPercents();
+  const { data: countyPropertyTaxPercents } = useCountyPropertyTaxPercents();
 
   const issues = useFirestoreCollectionConverter(
     () => {
@@ -51,17 +80,30 @@ export function useCost() {
     [home?.id]
   );
 
-  if (!home || !issues || !cityTransferTaxRates) {
+  console.log(home, issues, cityTransferTaxPercents, countyPropertyTaxPercents);
+
+  if (
+    !home ||
+    !issues ||
+    !cityTransferTaxPercents ||
+    !countyPropertyTaxPercents
+  ) {
     return null;
   }
 
-  const cityTransferTaxPercent = cityTransferTaxRates.find(({ city }) => {
+  const cityTransferTaxPercent = cityTransferTaxPercents.find(({ city }) => {
     return city === home.city;
   })?.rate as number;
+  const countyPropertyTaxPercent = countyPropertyTaxPercents.find(
+    ({ county }) => {
+      return county === home.county;
+    }
+  )?.rate as number;
 
   return new Cost({
     issues: issues,
     home: home,
     cityTransferTaxPercent,
+    countyPropertyTaxPercent,
   });
 }

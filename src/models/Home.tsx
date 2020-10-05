@@ -6,8 +6,8 @@ export const DEFAULT_COUNT_TAX_RATE = 0.785;
 export const EmptyHome: HomeData = {
   address: "",
   city: "",
+  county: "",
   baseCost: 0,
-  countyTaxRate: DEFAULT_COUNT_TAX_RATE,
 };
 
 export class Home implements BaseModelInterface {
@@ -19,12 +19,12 @@ export class Home implements BaseModelInterface {
     this.id = id;
   }
 
-  toFirestore(): HomeData {
-    return this.data;
-  }
-
   get baseCost(): number {
     return this.data.baseCost || 0;
+  }
+
+  get county() {
+    return this.data.county;
   }
 
   get address() {
@@ -33,9 +33,5 @@ export class Home implements BaseModelInterface {
 
   get city() {
     return this.data.city;
-  }
-
-  get countyTaxRate() {
-    return this.data.countyTaxRate || 0.785;
   }
 }

@@ -60,8 +60,4 @@ export class Issue implements BaseModelInterface {
   get valid() {
     return this.cost && this.name;
   }
-
-  toFirestore() {
-    return this.data;
-  }
 }

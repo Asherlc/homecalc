@@ -9,19 +9,23 @@ export class Cost {
   issues: Issue[];
   home: Home;
   cityTransferTaxPercent: number;
+  countyPropertyTaxPercent: number;
 
   constructor({
     issues,
     home,
     cityTransferTaxPercent,
+    countyPropertyTaxPercent,
   }: {
     issues: Issue[];
     home: Home;
     cityTransferTaxPercent: number;
+    countyPropertyTaxPercent: number;
   }) {
     this.issues = issues;
     this.home = home;
     this.cityTransferTaxPercent = cityTransferTaxPercent;
+    this.countyPropertyTaxPercent = countyPropertyTaxPercent;
   }
 
   get totalImmediateIssueCost() {
@@ -32,10 +36,6 @@ export class Cost {
 
   get baseCost(): number {
     return this.home.baseCost;
-  }
-
-  get countyTaxRate() {
-    return this.home.countyTaxRate;
   }
 
   get immediateIssues() {
@@ -52,7 +52,9 @@ export class Cost {
   }
 
   get annualTaxes() {
-    return Number((this.countyTaxRate / 100) * this.baseCost).toFixed(2);
+    return Number(
+      (this.countyPropertyTaxPercent / 100) * this.baseCost
+    ).toFixed(2);
   }
 
   get cityTransferTax() {
