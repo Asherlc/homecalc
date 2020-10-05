@@ -1,8 +1,6 @@
 import "../firebaseConfig";
 import { formatMoney } from "accounting";
 import { useFirestoreCollectionConverter } from "../hooks/firebase";
-import * as firebase from "firebase/app";
-import "firebase/firestore";
 import { DEFAULT_COUNT_TAX_RATE } from "../models/Home";
 import { Issue } from "../models/Issue";
 import { HomeSelector } from "./HomeSelector";
@@ -12,24 +10,18 @@ import { Issues } from "./Issues";
 import { TimeChart } from "./TimeChart";
 import { Card, Grid, CardContent, CircularProgress } from "@material-ui/core";
 import { Cost } from "../models/Cost";
-
-export const database = firebase.firestore();
+import { database } from "../database";
+import AddressForm from "./AddressForm";
+import { LoadingIndicator } from "react-select/src/components/indicators";
 
 export function updateAttribute(
   collectionName: string,
   id: string,
-  attr: string,
-  value: any
+  values: {
+    [key: string]: any;
+  }
 ) {
-  database
-    .collection(collectionName)
-    .doc(id)
-    .set(
-      {
-        [attr]: value,
-      },
-      { merge: true }
-    );
+  database.collection(collectionName).doc(id).set(values, { merge: true });
 }
 
 function updateHome(id: string, attr: string, value: any) {
@@ -92,16 +84,7 @@ function Basics() {
 
   return (
     <Grid container spacing={3}>
-      <Grid item xs={12} sm={4}>
-        <TextInput
-          label="Address"
-          value={currentHome.address}
-          onChange={(val) => {
-            updateHome(currentHome.id, "address", val);
-          }}
-        />
-      </Grid>
-      <Grid item xs={12} sm={4}>
+      <Grid item xs={12} sm={6}>
         <PriceInput
           label="Base Price"
           placeholder="$800,000"
@@ -111,7 +94,7 @@ function Basics() {
           }}
         />
       </Grid>
-      <Grid item xs={12} sm={4}>
+      <Grid item xs={12} sm={6}>
         <TextInput
           label="County Tax Rate (%)"
           placeholder={DEFAULT_COUNT_TAX_RATE.toString()}
@@ -125,6 +108,23 @@ function Basics() {
   );
 }
 
+function AddressEditor() {
+  const currentHome = useCurrentHome();
+
+  if (!currentHome) {
+    return <CircularProgress />;
+  }
+
+  return (
+    <AddressForm
+      initialValues={currentHome.toFirestore()}
+      onChange={(values) => {
+        updateAttribute(`homes`, currentHome.id, values);
+      }}
+    />
+  );
+}
+
 export default function HomeComponent() {
   return (
     <>
@@ -132,8 +132,19 @@ export default function HomeComponent() {
         <Grid item xs={12}>
           <HomeSelector />
         </Grid>
-        <Grid item xs={12}>
-          <Basics />
+        <Grid item xs={4}>
+          <Card>
+            <CardContent>
+              <Basics />
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid>
+          <Card>
+            <CardContent>
+              <AddressEditor />
+            </CardContent>
+          </Card>
         </Grid>
         <Grid item xs={12}>
           <Issues />

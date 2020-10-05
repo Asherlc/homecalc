@@ -1,11 +1,9 @@
 import { DependencyList, useEffect, useState } from "react";
 import "../firebaseConfig";
 import * as firebase from "firebase/app";
-import "firebase/firestore";
+import { database } from "../database";
 
 import { useAsync } from "react-use";
-
-const database = firebase.firestore();
 
 export type FirestoreRecord<T> = {
   id: string;

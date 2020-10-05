@@ -1,5 +1,6 @@
 export interface HomeData {
   baseCost?: number;
   countyTaxRate?: number;
-  address?: string;
+  address: string;
+  city: string;
 }

@@ -1,80 +1,39 @@
+import { useHomes } from "../hooks/useHomes";
 import {
-  Grid,
   MenuItem,
   Select,
   FormControl,
-  TextField,
-  InputLabel,
-  InputAdornment,
-  IconButton,
+  CircularProgress,
 } from "@material-ui/core";
-import { Add } from "@material-ui/icons";
 import { useRouter } from "next/router";
 import { useCurrentHome } from "../hooks/useCurrentHome";
 
-import * as firebase from "firebase";
-import { useHomes } from "../hooks/useHomes";
-import { useState } from "react";
-
-import { insertRecord } from "../firebaseUtils";
-import { Home } from "../models/Home";
-
-function HomeCreator() {
-  const [address, setAddress] = useState<string>();
-  const router = useRouter();
-
-  return (
-    <FormControl>
-      <TextField
-        label="Create Home"
-        placeholder="Address"
-        value={address}
-        onChange={(event) => {
-          setAddress(event.target.value);
-        }}
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              <IconButton
-                aria-label="toggle password visibility"
-                onClick={async () => {
-                  const id = await insertRecord("homes", {
-                    address,
-                  });
-
-                  router.push(`/homes/${id}`);
-
-                  setAddress("");
-                }}
-              >
-                <Add />
-              </IconButton>
-            </InputAdornment>
-          ),
-        }}
-      />
-    </FormControl>
-  );
-}
-
-function Selector({ homes }: { homes: Home[] }) {
+export function HomeSelector() {
   const router = useRouter();
   const currentHome = useCurrentHome();
+  const homes = useHomes();
+
+  if (!homes) {
+    return <CircularProgress />;
+  }
 
   return (
     <FormControl>
-      <InputLabel>Select a home</InputLabel>
       <Select
         autoWidth={true}
         value={currentHome?.id || ""}
+        displayEmpty
         onChange={(event) => {
           router.push(`/homes/${event.target.value}`);
         }}
       >
+        <MenuItem value="" disabled>
+          Select A Home
+        </MenuItem>
         {homes.map((home) => {
           return (
             <MenuItem key={home.id} value={home.id}>
-              {home.address}
+              {home.address} {home.city}
             </MenuItem>
           );
         })}
@@ -82,24 +41,3 @@ function Selector({ homes }: { homes: Home[] }) {
     </FormControl>
   );
 }
-
-export function HomeSelector() {
-  const homes = useHomes();
-
-  if (!homes) {
-    return null;
-  }
-
-  return (
-    <Grid container spacing={3}>
-      <Grid item xs={12} sm={6}>
-        <Selector homes={homes} />
-      </Grid>
-      <Grid item xs={12} sm={6}>
-        <HomeCreator />
-      </Grid>
-    </Grid>
-  );
-}
-
-export const database = firebase.firestore();

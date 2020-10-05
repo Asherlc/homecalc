@@ -1,6 +1,6 @@
 import { useFirestoreCollectionConverter } from "./firebase";
 import { Home } from "../models/Home";
-import { database } from "../components/HomeSelector";
+import { database } from "../database";
 
 export function useHomes() {
   return useFirestoreCollectionConverter(

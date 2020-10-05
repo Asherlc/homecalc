@@ -18,7 +18,7 @@ import { formatMoney } from "accounting";
 export const database = firebase.firestore();
 
 export function updateIssue(id: string, attr: string, value: any) {
-  updateAttribute(`issues`, id, attr, value);
+  updateAttribute(`issues`, id, { [attr]: value });
 }
 
 export function removeIssue(id: string) {
@@ -26,7 +26,6 @@ export function removeIssue(id: string) {
 }
 
 function OurSlider({ issue }: { issue: Issue }) {
-  console.log(issue);
   const [sellerPercent, setSellerPercent] = useState(issue.sellerPercent);
 
   useEffect(() => {
@@ -54,11 +53,11 @@ function OurSlider({ issue }: { issue: Issue }) {
             value={sellerPercent}
             margin="dense"
             onChange={(e) => {
-              updateIssue(
-                issue.id,
-                "sellerPercent",
-                e.target.value ? parseInt(e.target.value) : undefined
-              );
+              updateIssue(issue.id, {
+                sellerPercent: e.target.value
+                  ? parseInt(e.target.value)
+                  : undefined,
+              });
             }}
             inputProps={{
               step: 10,
