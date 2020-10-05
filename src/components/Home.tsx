@@ -5,7 +5,16 @@ import { useCurrentHome } from "../hooks/useCurrentHome";
 import { PriceInput } from "./inputs";
 import { Issues } from "./Issues";
 import { TimeChart } from "./TimeChart";
-import { Card, Grid, CardContent, CircularProgress } from "@material-ui/core";
+import {
+  List,
+  ListSubheader,
+  ListItem,
+  ListItemText,
+  Card,
+  Grid,
+  CardContent,
+  CircularProgress,
+} from "@material-ui/core";
 import { database } from "../database";
 import AddressForm from "./AddressForm";
 import { useCost } from "../hooks/useCost";
@@ -28,6 +37,14 @@ function updateHome(id: string, values: Partial<HomeData>) {
   return updateAttribute(`homes`, id, values);
 }
 
+function SummaryItem({ name, cost }: { name: string; cost: string }) {
+  return (
+    <ListItem>
+      <ListItemText primary={name} secondary={cost} />
+    </ListItem>
+  );
+}
+
 function Summary() {
   const cost = useCost();
 
@@ -38,15 +55,20 @@ function Summary() {
   return (
     <Card>
       <CardContent>
-        <p>
-          50% of City Transfer Tax ({cost.cityTransferTaxPercent}%):{" "}
-          {formatMoney(cost.cityTransferTax, undefined, 0)}
-        </p>
-        <p>Total Cost: {formatMoney(cost.total, undefined, 0)}</p>
-        <p>
-          Annual Tax Cost ({cost.countyPropertyTaxPercent}%):{" "}
-          {formatMoney(cost.annualTaxes, undefined, 0)}
-        </p>
+        <List subheader={<ListSubheader>Summary</ListSubheader>}>
+          <SummaryItem
+            name={`50% of City Transfer Tax (${cost.cityTransferTaxPercent}%)`}
+            cost={formatMoney(cost.cityTransferTax, undefined, 0)}
+          />
+          <SummaryItem
+            name={`Total Cost`}
+            cost={formatMoney(cost.total, undefined, 0)}
+          />
+          <SummaryItem
+            name={`Annual Tax Cost (${cost.countyPropertyTaxPercent}%)`}
+            cost={formatMoney(cost.annualTaxes, undefined, 0)}
+          />
+        </List>
       </CardContent>
     </Card>
   );
