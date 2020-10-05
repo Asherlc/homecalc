@@ -1,9 +1,8 @@
 import "../firebaseConfig";
 import { formatMoney } from "accounting";
-import { DEFAULT_COUNT_TAX_RATE } from "../models/Home";
 import { HomeSelector } from "./HomeSelector";
 import { useCurrentHome } from "../hooks/useCurrentHome";
-import { TextInput, PriceInput } from "./inputs";
+import { PriceInput } from "./inputs";
 import { Issues } from "./Issues";
 import { TimeChart } from "./TimeChart";
 import { Card, Grid, CardContent, CircularProgress } from "@material-ui/core";
@@ -19,11 +18,14 @@ export function updateAttribute(
     [key: string]: any;
   }
 ) {
-  database.collection(collectionName).doc(id).set(values, { merge: true });
+  return database
+    .collection(collectionName)
+    .doc(id)
+    .set(values, { merge: true });
 }
 
 function updateHome(id: string, values: Partial<HomeData>) {
-  updateAttribute(`homes`, id, values);
+  return updateAttribute(`homes`, id, values);
 }
 
 function Summary() {
@@ -87,8 +89,9 @@ function AddressEditor() {
         city: currentHome.city,
         county: currentHome.county,
       }}
-      onChange={(values) => {
-        updateAttribute(`homes`, currentHome.id, values);
+      autosave={true}
+      onSubmit={(values) => {
+        return updateAttribute(`homes`, currentHome.id, values);
       }}
     />
   );

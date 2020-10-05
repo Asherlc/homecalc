@@ -1,8 +1,6 @@
 import { HomeData } from "../types/HomeData";
 import { BaseModelInterface } from "./BaseModel";
 
-export const DEFAULT_COUNT_TAX_RATE = 0.785;
-
 export const EmptyHome: HomeData = {
   address: "",
   city: "",

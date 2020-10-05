@@ -1,7 +1,9 @@
 import { Grid, Typography, LinearProgress, Button } from "@material-ui/core";
 import { TextField } from "formik-material-ui";
-import { Formik, Form, Field } from "formik";
+import { Formik, Form, Field, useFormikContext } from "formik";
 import { EmptyHome } from "../models/Home";
+import { useDeepCompareEffect } from "react-use";
+import { useDebouncedCallback } from "use-debounce";
 
 interface Values {
   address: string;
@@ -11,38 +13,46 @@ interface Values {
 
 interface Props {
   onSubmit?: (values: Values) => void;
-  onChange?: (values: Values) => void;
+  autosave: boolean;
   initialValues?: Values;
 }
 
-function AutoSave({
-  values,
-  onChange,
-}: {
-  values: Values;
-  onChange: (values: Values) => void;
-}) {
-  onChange(values);
+export function AutoSave() {
+  const formik = useFormikContext();
+  const { dirty, isValid, isSubmitting, values, submitForm } = formik;
+
+  const debounced = useDebouncedCallback(() => {
+    if (dirty && isValid && !isSubmitting) {
+      submitForm();
+    }
+  }, 500);
+
+  useDeepCompareEffect(() => {
+    debounced.callback();
+  }, [values]);
+
   return null;
 }
 
 export default function AddressForm({
   initialValues,
   onSubmit,
-  onChange,
+  autosave,
 }: Props) {
   return (
     <Formik
       initialValues={initialValues || EmptyHome}
-      onSubmit={(values) => {
+      onSubmit={async (values, actions) => {
         if (onSubmit) {
-          onSubmit(values);
+          await onSubmit(values);
         }
+
+        actions.setSubmitting(false);
       }}
     >
       {({ submitForm, isSubmitting, values }) => (
         <Form>
-          {onChange && <AutoSave values={values} onChange={onChange} />}
+          {autosave && <AutoSave />}
           <Typography variant="h6" gutterBottom>
             Address
           </Typography>
@@ -76,7 +86,7 @@ export default function AddressForm({
             </Grid>
           </Grid>
           {isSubmitting && <LinearProgress />}
-          {onSubmit && (
+          {!autosave && (
             <>
               <br />
               <Button

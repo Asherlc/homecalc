@@ -39,7 +39,8 @@
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "react-use": "^15.3.4",
-    "swr": "^0.3.5"
+    "swr": "^0.3.5",
+    "use-debounce": "^5.0.1"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.11.5",

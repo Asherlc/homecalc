@@ -9,6 +9,7 @@ function HomeCreator() {
 
   return (
     <AddressForm
+      autosave={false}
       onSubmit={async (address) => {
         const id = await insertRecord("homes", address);
 
