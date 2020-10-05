@@ -50,7 +50,7 @@ export class Issue implements BaseModelInterface {
       return null;
     }
 
-    return parseDate(this.data.requiredIn);
+    return parseDate(this.data.requiredIn, new Date(), { forwardDate: true });
   }
 
   get requiredIn() {

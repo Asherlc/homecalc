@@ -15,6 +15,20 @@ import { updateAttribute } from "./Home";
 import { useCost } from "../hooks/useCost";
 import { forwardRef, useEffect, useState } from "react";
 import { formatMoney } from "accounting";
+import { isEmpty } from "lodash";
+
+function requiredField(fieldName: string) {
+  return (rowData: Issue) => {
+    const isValid = !isEmpty((rowData as Record<string, any>)[fieldName]);
+
+    return isValid
+      ? true
+      : {
+          isValid,
+          helperText: `${fieldName} is required`,
+        };
+  };
+}
 
 export const database = firebase.firestore();
 
@@ -124,10 +138,11 @@ export function Issues() {
         },
       }}
       columns={[
-        { title: "Name", field: "name" },
+        { title: "Name", field: "name", validate: requiredField("name") },
         {
           title: "Cost",
           field: "cost",
+          validate: requiredField("cost"),
           render: (rowData) => {
             return formatMoney(rowData.cost, undefined, 0);
           },
@@ -135,6 +150,7 @@ export function Issues() {
         {
           title: "Required In",
           field: "requiredIn",
+          validate: requiredField("requiredIn"),
         },
         {
           title: "% Seller Pays",
