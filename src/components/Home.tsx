@@ -61,6 +61,10 @@ function Summary() {
             ).toFixed(2)}%)`}
             cost={formatMoney(cost.annualTaxes, undefined, 0)}
           />
+          <SummaryItem
+            name="Total Immediate Issue Cost"
+            cost={formatMoney(cost.totalImmediateIssueCost, undefined, 0)}
+          />
         </List>
         {cost.offerableAmount > 0 ? (
           <Alert severity="success">

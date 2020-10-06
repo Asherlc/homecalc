@@ -10,10 +10,10 @@ import {
 import { insertRecord, removeRecord, updateAttribute } from "../firebaseUtils";
 import useIncomes from "../hooks/useIncomes";
 import { forwardRef } from "react";
-import Currency from "./Currency";
 import IncomeModel, { IncomeData } from "../models/Income";
 import { requiredField } from "./Issues";
 import { Collections } from "../database";
+import { formatMoney } from "accounting";
 
 export function Income() {
   const incomes = useIncomes();
@@ -69,10 +69,11 @@ export function Income() {
         { title: "Name", field: "name", validate: requiredField("name") },
         {
           title: "Amount",
+          type: "numeric",
           field: "amount",
           validate: requiredField("amount"),
           render: function AmountCell(rowData) {
-            return <Currency>{rowData.amount}</Currency>;
+            return formatMoney(rowData.amount, undefined, 0);
           },
         },
         {

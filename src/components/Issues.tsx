@@ -141,6 +141,7 @@ export function Issues() {
         { title: "Name", field: "name", validate: requiredField("name") },
         {
           title: "Cost",
+          type: "numeric",
           field: "cost",
           validate: requiredField("cost"),
           render: (rowData) => {

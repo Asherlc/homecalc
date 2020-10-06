@@ -35,13 +35,13 @@ export class Cost {
 
   get totalImmediateIssueCost(): number {
     return this.immediateIssues.reduce((total, issue) => {
-      return add(total, issue.buyerCost as number);
+      return total + issue.buyerCost;
     }, 0);
   }
 
   get totalImmediateIncome(): number {
     return this.immediateIncomes.reduce((total, income) => {
-      return add(total, income.amount);
+      return total + income.amount;
     }, 0);
   }
 
