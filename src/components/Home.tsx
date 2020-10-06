@@ -73,7 +73,8 @@ function Summary() {
           </Alert>
         ) : (
           <Alert severity="warning">
-            You are <Currency>{Math.abs(cost.offerableAmount)}</Currency>
+            You are <Currency>{Math.abs(cost.offerableAmount)}</Currency> short
+            of making an offer on this house
           </Alert>
         )}
       </CardContent>
@@ -145,7 +146,7 @@ export default function HomeComponent() {
             <Summary />
           </Grid>
         </Grid>
-        <Grid container item sm={6} xs={12}>
+        <Grid container item sm={6} xs={12} spacing={3}>
           <Grid item xs={12}>
             <Card>
               <CardContent>
