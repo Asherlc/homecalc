@@ -5,8 +5,9 @@ import { useFirestoreCollectionConverter } from "./firebase";
 import { Issue } from "../models/Issue";
 import { useCurrentHome } from "./useCurrentHome";
 import { Cost } from "../models/Cost";
-import { database } from "../database";
+import { Collections, database } from "../database";
 import useSWR from "swr";
+import useIncomes from "./useIncomes";
 
 interface CityTransferTaxRate {
   city: string;
@@ -62,7 +63,7 @@ function useCountyPropertyTaxPercents() {
   );
 }
 
-export function useCost() {
+export function useCost(): Cost | undefined {
   const home = useCurrentHome();
   const { data: cityTransferTaxPercents } = useCityTransferTaxPercents();
   const { data: countyPropertyTaxPercents } = useCountyPropertyTaxPercents();
@@ -71,7 +72,7 @@ export function useCost() {
     () => {
       return home?.id
         ? database
-            .collection("issues")
+            .collection(Collections.Issues)
             .where("homeId", "==", home.id)
             .orderBy("createdAt")
         : undefined;
@@ -79,14 +80,16 @@ export function useCost() {
     Issue,
     [home?.id]
   );
+  const incomes = useIncomes();
 
   if (
     !home ||
     !issues ||
     !cityTransferTaxPercents ||
-    !countyPropertyTaxPercents
+    !countyPropertyTaxPercents ||
+    !incomes
   ) {
-    return null;
+    return;
   }
 
   const cityTransferTaxPercent = cityTransferTaxPercents.find(({ city }) => {
@@ -99,6 +102,7 @@ export function useCost() {
   )?.rate as number;
 
   return new Cost({
+    incomes,
     issues: issues,
     home: home,
     cityTransferTaxPercent,

@@ -3,6 +3,7 @@ import { insertRecord } from "../src/firebaseUtils";
 import { Card, CardContent } from "@material-ui/core";
 import { HomeSelector } from "../src/components/HomeSelector";
 import { useRouter } from "next/router";
+import { Collections } from "../src/database";
 
 function HomeCreator() {
   const router = useRouter();
@@ -11,7 +12,7 @@ function HomeCreator() {
     <AddressForm
       autosave={false}
       onSubmit={async (address) => {
-        const id = await insertRecord("homes", address);
+        const id = await insertRecord(Collections.Homes, address);
 
         router.push(`/homes/${id}`);
       }}

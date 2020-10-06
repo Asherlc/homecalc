@@ -1,11 +1,11 @@
 import { useFirestoreCollectionConverter } from "./firebase";
 import { Home } from "../models/Home";
-import { database } from "../database";
+import { Collections, database } from "../database";
 
-export function useHomes() {
+export function useHomes(): Home[] | undefined {
   return useFirestoreCollectionConverter(
     () => {
-      return database.collection("homes");
+      return database.collection(Collections.Homes);
     },
     Home,
     []

@@ -10,16 +10,16 @@ import {
   Edit,
 } from "@material-ui/icons";
 import { Hidden, Input, Slider, Grid } from "@material-ui/core";
-import { insertRecord } from "../firebaseUtils";
-import { updateAttribute } from "./Home";
+import { insertRecord, updateAttribute } from "../firebaseUtils";
 import { useCost } from "../hooks/useCost";
 import { forwardRef, useEffect, useState } from "react";
 import { formatMoney } from "accounting";
 import { isEmpty } from "lodash";
+import { Collections } from "../database";
 
-function requiredField(fieldName: string) {
-  return (rowData: Issue) => {
-    const isValid = !isEmpty((rowData as Record<string, any>)[fieldName]);
+export function requiredField<T>(fieldName: keyof T) {
+  return (rowData: T) => {
+    const isValid = !isEmpty(rowData[fieldName]);
 
     return isValid
       ? true
@@ -32,12 +32,12 @@ function requiredField(fieldName: string) {
 
 export const database = firebase.firestore();
 
-export function updateIssue(id: string, values: IssueData) {
-  updateAttribute(`issues`, id, values);
+export function updateIssue(id: string, values: IssueData): Promise<void> {
+  return updateAttribute(Collections.Issues, id, values);
 }
 
-export function removeIssue(id: string) {
-  database.collection(`issues`).doc(id).delete();
+export function removeIssue(id: string): Promise<void> {
+  return database.collection(Collections.Issues).doc(id).delete();
 }
 
 function OurSlider({ issue }: { issue: Issue }) {
@@ -121,7 +121,7 @@ export function Issues() {
       }}
       editable={{
         onRowAdd: (newData: Record<string, any>) => {
-          return insertRecord<IssueData>("issues", {
+          return insertRecord<IssueData>(Collections.Issues, {
             ...EmptyIssue,
             homeId: cost.home.id,
             createdAt: new Date().toISOString(),

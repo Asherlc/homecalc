@@ -1,10 +1,12 @@
 import "../firebaseConfig";
+import Currency from "./Currency";
 import { formatMoney } from "accounting";
 import { HomeSelector } from "./HomeSelector";
 import { useCurrentHome } from "../hooks/useCurrentHome";
 import { PriceInput } from "./inputs";
 import { Issues } from "./Issues";
 import { TimeChart } from "./TimeChart";
+import { Alert } from "@material-ui/lab";
 import {
   List,
   ListSubheader,
@@ -15,26 +17,15 @@ import {
   CardContent,
   CircularProgress,
 } from "@material-ui/core";
-import { database } from "../database";
 import AddressForm from "./AddressForm";
 import { useCost } from "../hooks/useCost";
 import { HomeData } from "../types/HomeData";
-
-export function updateAttribute(
-  collectionName: string,
-  id: string,
-  values: {
-    [key: string]: any;
-  }
-) {
-  return database
-    .collection(collectionName)
-    .doc(id)
-    .set(values, { merge: true });
-}
+import { updateAttribute } from "../firebaseUtils";
+import { Income } from "./Income";
+import { Collections } from "../database";
 
 function updateHome(id: string, values: Partial<HomeData>) {
-  return updateAttribute(`homes`, id, values);
+  return updateAttribute(Collections.Homes, id, values);
 }
 
 function SummaryItem({ name, cost }: { name: string; cost: string }) {
@@ -65,10 +56,22 @@ function Summary() {
             cost={formatMoney(cost.total, undefined, 0)}
           />
           <SummaryItem
-            name={`Annual Tax Cost (${cost.countyPropertyTaxPercent}%)`}
+            name={`Annual Tax Cost (${Number(
+              cost.countyPropertyTaxPercent
+            ).toFixed(2)}%)`}
             cost={formatMoney(cost.annualTaxes, undefined, 0)}
           />
         </List>
+        {cost.offerableAmount > 0 ? (
+          <Alert severity="success">
+            You can offer <Currency>{cost.offerableAmount}</Currency> on this
+            house
+          </Alert>
+        ) : (
+          <Alert severity="warning">
+            You are <Currency>{Math.abs(cost.offerableAmount)}</Currency>
+          </Alert>
+        )}
       </CardContent>
     </Card>
   );
@@ -113,7 +116,7 @@ function AddressEditor() {
       }}
       autosave={true}
       onSubmit={(values) => {
-        return updateAttribute(`homes`, currentHome.id, values);
+        return updateAttribute(Collections.Homes, currentHome.id, values);
       }}
     />
   );
@@ -138,12 +141,17 @@ export default function HomeComponent() {
             <Summary />
           </Grid>
         </Grid>
-        <Grid item sm={6} xs={12}>
-          <Card>
-            <CardContent>
-              <AddressEditor />
-            </CardContent>
-          </Card>
+        <Grid container item sm={6} xs={12}>
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <AddressEditor />
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12}>
+            <Income />
+          </Grid>
         </Grid>
         <Grid item xs={12}>
           <Issues />

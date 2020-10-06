@@ -5,6 +5,8 @@ module.exports = {
     node: true,
   },
   extends: [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
     "plugin:react/recommended",
     "standard",
     "plugin:prettier/recommended",
@@ -25,7 +27,7 @@ module.exports = {
     "react/react-in-jsx-scope": "off",
     "react-hooks/rules-of-hooks": "error", // Checks rules of Hooks
     "react-hooks/exhaustive-deps": "error", // Checks effect dependencies
-    "no-unused-vars": "error",
+    "no-unused-vars": "off",
   },
   settings: {
     react: {

@@ -29,10 +29,6 @@ export class Issue implements BaseModelInterface {
     return this.data.cost || 0;
   }
 
-  get createdAt() {
-    return new Date(this.data.createdAt as string);
-  }
-
   get name() {
     return this.data.name;
   }
@@ -55,9 +51,5 @@ export class Issue implements BaseModelInterface {
 
   get requiredIn() {
     return this.data.requiredIn;
-  }
-
-  get valid() {
-    return this.cost && this.name;
   }
 }

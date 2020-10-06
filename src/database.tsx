@@ -4,3 +4,9 @@ import "firebase/firestore";
 import "./firebaseConfig";
 
 export const database = firebase.firestore();
+
+export enum Collections {
+  Issues = "issues",
+  Homes = "homes",
+  Incomes = "incomes",
+}
