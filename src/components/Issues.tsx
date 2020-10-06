@@ -1,4 +1,4 @@
-import MaterialTable from "material-table";
+import MaterialTable, { Column } from "material-table";
 import * as firebase from "firebase/app";
 import { EmptyIssue, Issue, IssueData } from "../models/Issue";
 import {
@@ -14,12 +14,13 @@ import { insertRecord, updateAttribute } from "../firebaseUtils";
 import { useCost } from "../hooks/useCost";
 import { forwardRef, useEffect, useState } from "react";
 import { formatMoney } from "accounting";
-import { isEmpty } from "lodash";
+import { isEmpty, isNumber } from "lodash";
 import { Collections } from "../database";
 
 export function requiredField<T>(fieldName: keyof T) {
   return (rowData: T) => {
-    const isValid = !isEmpty(rowData[fieldName]);
+    const val = rowData[fieldName];
+    const isValid = !isEmpty(val) || isNumber(val);
 
     return isValid
       ? true
