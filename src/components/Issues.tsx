@@ -1,4 +1,4 @@
-import MaterialTable, { Column } from "material-table";
+import MaterialTable, { Icons } from "material-table";
 import * as firebase from "firebase/app";
 import { EmptyIssue, Issue, IssueData } from "../models/Issue";
 import {
@@ -17,6 +17,16 @@ import { formatMoney } from "accounting";
 import { isEmpty, isNumber } from "lodash";
 import { Collections } from "../database";
 
+export function deletableField(validator: (rowData: any) => any) {
+  return (rowData: unknown) => {
+    if ((rowData as any)?.tableData?.editing === "delete") {
+      return true;
+    }
+
+    return validator(rowData);
+  };
+}
+
 export function requiredField<T>(fieldName: keyof T) {
   return (rowData: T) => {
     const val = rowData[fieldName];
@@ -30,6 +40,9 @@ export function requiredField<T>(fieldName: keyof T) {
         };
   };
 }
+
+export const requiredAndDeletableField = (fieldName: string) =>
+  deletableField(requiredField(fieldName));
 
 export const database = firebase.firestore();
 
@@ -88,6 +101,21 @@ function OurSlider({ issue }: { issue: Issue }) {
   );
 }
 
+export const icons: Icons = {
+  // eslint-disable-next-line react/display-name
+  Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
+  // eslint-disable-next-line react/display-name
+  Check: forwardRef((props, ref) => <Check {...props} ref={ref} />),
+  // eslint-disable-next-line react/display-name
+  Clear: forwardRef((props, ref) => <Clear {...props} ref={ref} />),
+  // eslint-disable-next-line react/display-name
+  Delete: forwardRef((props, ref) => <DeleteOutline {...props} ref={ref} />),
+  // eslint-disable-next-line react/display-name
+  Edit: forwardRef((props, ref) => <Edit {...props} ref={ref} />),
+  // eslint-disable-next-line react/display-name
+  ThirdStateCheck: forwardRef((props, ref) => <Remove {...props} ref={ref} />),
+};
+
 export function Issues() {
   const cost = useCost();
 
@@ -102,24 +130,7 @@ export function Issues() {
         search: false,
         paging: false,
       }}
-      icons={{
-        // eslint-disable-next-line react/display-name
-        Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
-        // eslint-disable-next-line react/display-name
-        Check: forwardRef((props, ref) => <Check {...props} ref={ref} />),
-        // eslint-disable-next-line react/display-name
-        Clear: forwardRef((props, ref) => <Clear {...props} ref={ref} />),
-        // eslint-disable-next-line react/display-name
-        Delete: forwardRef((props, ref) => (
-          <DeleteOutline {...props} ref={ref} />
-        )),
-        // eslint-disable-next-line react/display-name
-        Edit: forwardRef((props, ref) => <Edit {...props} ref={ref} />),
-        // eslint-disable-next-line react/display-name
-        ThirdStateCheck: forwardRef((props, ref) => (
-          <Remove {...props} ref={ref} />
-        )),
-      }}
+      icons={icons}
       editable={{
         onRowAdd: (newData: Record<string, any>) => {
           return insertRecord<IssueData>(Collections.Issues, {
@@ -139,12 +150,16 @@ export function Issues() {
         },
       }}
       columns={[
-        { title: "Name", field: "name", validate: requiredField("name") },
+        {
+          title: "Name",
+          field: "name",
+          validate: requiredAndDeletableField("name"),
+        },
         {
           title: "Cost",
           type: "numeric",
           field: "cost",
-          validate: requiredField("cost"),
+          validate: requiredAndDeletableField("cost"),
           render: (rowData) => {
             return formatMoney(rowData.cost, undefined, 0);
           },
@@ -152,7 +167,7 @@ export function Issues() {
         {
           title: "Required In",
           field: "requiredIn",
-          validate: requiredField("requiredIn"),
+          validate: requiredAndDeletableField("requiredIn"),
         },
         {
           title: "% Seller Pays",

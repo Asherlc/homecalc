@@ -4,7 +4,6 @@ export async function insertRecord<T>(
   collectionName: Collections,
   value: T
 ): Promise<string> {
-  console.log(collectionName, value);
   return (await database.collection(collectionName).add(value)).id;
 }
 

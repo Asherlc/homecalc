@@ -1,17 +1,8 @@
 import MaterialTable from "material-table";
-import {
-  Remove,
-  Clear,
-  AddBox,
-  Check,
-  DeleteOutline,
-  Edit,
-} from "@material-ui/icons";
 import { insertRecord, removeRecord, updateAttribute } from "../firebaseUtils";
 import useIncomes from "../hooks/useIncomes";
-import { forwardRef } from "react";
 import IncomeModel, { IncomeData } from "../models/Income";
-import { requiredField } from "./Issues";
+import { icons, requiredAndDeletableField } from "./Issues";
 import { Collections } from "../database";
 import { formatMoney } from "accounting";
 
@@ -29,24 +20,7 @@ export function Income() {
         search: false,
         paging: false,
       }}
-      icons={{
-        // eslint-disable-next-line react/display-name
-        Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
-        // eslint-disable-next-line react/display-name
-        Check: forwardRef((props, ref) => <Check {...props} ref={ref} />),
-        // eslint-disable-next-line react/display-name
-        Clear: forwardRef((props, ref) => <Clear {...props} ref={ref} />),
-        // eslint-disable-next-line react/display-name
-        Delete: forwardRef((props, ref) => (
-          <DeleteOutline {...props} ref={ref} />
-        )),
-        // eslint-disable-next-line react/display-name
-        Edit: forwardRef((props, ref) => <Edit {...props} ref={ref} />),
-        // eslint-disable-next-line react/display-name
-        ThirdStateCheck: forwardRef((props, ref) => (
-          <Remove {...props} ref={ref} />
-        )),
-      }}
+      icons={icons}
       editable={{
         onRowAdd: (newData: Omit<IncomeData, "createdAt">) => {
           return insertRecord<IncomeData>(Collections.Incomes, {
@@ -66,12 +40,16 @@ export function Income() {
         },
       }}
       columns={[
-        { title: "Name", field: "name", validate: requiredField("name") },
+        {
+          title: "Name",
+          field: "name",
+          validate: requiredAndDeletableField("name"),
+        },
         {
           title: "Amount",
           type: "numeric",
           field: "amount",
-          validate: requiredField("amount"),
+          validate: requiredAndDeletableField("amount"),
           render: function AmountCell(rowData) {
             return formatMoney(rowData.amount, undefined, 0);
           },
@@ -79,7 +57,7 @@ export function Income() {
         {
           title: "Available In",
           field: "availableIn",
-          validate: requiredField("availableIn"),
+          validate: requiredAndDeletableField("availableIn"),
         },
       ]}
       data={incomes}
