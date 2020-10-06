@@ -1,12 +1,11 @@
 import "../firebaseConfig";
-import Currency from "./Currency";
+import CostFormula from "./CostFormula";
 import { formatMoney } from "accounting";
 import { HomeSelector } from "./HomeSelector";
 import { useCurrentHome } from "../hooks/useCurrentHome";
 import { PriceInput } from "./inputs";
 import { Issues } from "./Issues";
 import { TimeChart } from "./TimeChart";
-import { Alert } from "@material-ui/lab";
 import {
   List,
   ListSubheader,
@@ -48,35 +47,12 @@ function Summary() {
       <CardContent>
         <List subheader={<ListSubheader>Summary</ListSubheader>}>
           <SummaryItem
-            name={`50% of City Transfer Tax (${cost.cityTransferTaxPercent}%)`}
-            cost={formatMoney(cost.cityTransferTax, undefined, 0)}
-          />
-          <SummaryItem
-            name={`Total Cost`}
-            cost={formatMoney(cost.total, undefined, 0)}
-          />
-          <SummaryItem
             name={`Annual Tax Cost (${Number(
               cost.countyPropertyTaxPercent
             ).toFixed(2)}%)`}
             cost={formatMoney(cost.annualTaxes, undefined, 0)}
           />
-          <SummaryItem
-            name="Total Immediate Issue Cost"
-            cost={formatMoney(cost.totalImmediateIssueCost, undefined, 0)}
-          />
         </List>
-        {cost.offerableAmount > 0 ? (
-          <Alert severity="success">
-            You can offer <Currency>{cost.offerableAmount}</Currency> on this
-            house
-          </Alert>
-        ) : (
-          <Alert severity="warning">
-            You are <Currency>{Math.abs(cost.offerableAmount)}</Currency> short
-            of making an offer on this house
-          </Alert>
-        )}
       </CardContent>
     </Card>
   );
@@ -142,8 +118,13 @@ export default function HomeComponent() {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12}>
-            <Summary />
+          <Grid item xs={12} container spacing={3}>
+            <Grid item xs={12}>
+              <Summary />
+            </Grid>
+            <Grid item xs={12}>
+              <CostFormula />
+            </Grid>
           </Grid>
         </Grid>
         <Grid container item sm={6} xs={12} spacing={3}>
