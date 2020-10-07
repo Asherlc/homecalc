@@ -35,6 +35,7 @@ export function SliderWithNumberInput({ value, onChangeCommitted }: Props) {
             margin="dense"
             onChange={(e) => {
               const int = e.target.value ? parseInt(e.target.value) : undefined;
+              setNumber(int);
               onChangeCommitted(int);
             }}
             inputProps={{
