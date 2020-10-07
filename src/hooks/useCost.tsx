@@ -68,18 +68,7 @@ export function useCost(): Cost | undefined {
   const { data: cityTransferTaxPercents } = useCityTransferTaxPercents();
   const { data: countyPropertyTaxPercents } = useCountyPropertyTaxPercents();
 
-  const issues = useFirestoreCollectionConverter(
-    () => {
-      return home?.id
-        ? database
-            .collection(Collections.Issues)
-            .where("homeId", "==", home.id)
-            .orderBy("createdAt")
-        : undefined;
-    },
-    Issue,
-    [home?.id]
-  );
+  const issues = useIssues();
   const incomes = useIncomes();
 
   if (
@@ -108,4 +97,21 @@ export function useCost(): Cost | undefined {
     cityTransferTaxPercent,
     countyPropertyTaxPercent,
   });
+}
+
+export function useIssues(): Issue[] | undefined {
+  const home = useCurrentHome();
+
+  return useFirestoreCollectionConverter(
+    () => {
+      return home?.id
+        ? database
+            .collection(Collections.Issues)
+            .where("homeId", "==", home.id)
+            .orderBy("createdAt")
+        : undefined;
+    },
+    Issue,
+    [home?.id]
+  );
 }

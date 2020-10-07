@@ -11,8 +11,16 @@ import {
 } from "@material-ui/lab";
 import { Add, Remove } from "@material-ui/icons";
 import { Typography, CircularProgress } from "@material-ui/core";
-import { useCost } from "../hooks/useCost";
+import { useCost, useIssues } from "../hooks/useCost";
 import Currency from "./Currency";
+import { getMaximumOfferable } from "../models/Cost";
+import {
+  sumImmediateIncomes,
+  sumImmediateIssues,
+  sumLineItemsBy,
+  withImmediateLineItems,
+} from "../utils";
+import useIncomes from "../hooks/useIncomes";
 
 const useItemStyles = makeStyles((theme) => ({
   verticallyCentering: {
@@ -69,9 +77,11 @@ function Offerable({ offerableAmount }: { offerableAmount: number }) {
 }
 
 export default function CustomizedTimeline() {
+  const issues = useIssues();
+  const incomes = useIncomes();
   const cost = useCost();
 
-  if (!cost) {
+  if (!cost || !issues || !incomes) {
     return <CircularProgress />;
   }
 
@@ -79,12 +89,12 @@ export default function CustomizedTimeline() {
     <Timeline>
       <Item
         name="Total Immediate Income"
-        amount={cost.totalImmediateIncome}
+        amount={sumImmediateIncomes(incomes)}
         type="income"
       />
       <Item
         name="Total Immediate Issue Cost"
-        amount={cost.totalImmediateIssueCost}
+        amount={sumImmediateIssues(issues)}
         type="cost"
       />
       <Item
@@ -92,7 +102,13 @@ export default function CustomizedTimeline() {
         amount={cost.cityTransferTax}
         type="cost"
       />
-      <Offerable offerableAmount={cost.offerableAmount} />
+      <Offerable
+        offerableAmount={getMaximumOfferable({
+          immediateIssueCost: sumImmediateIssues(issues),
+          immediateIncome: sumImmediateIncomes(incomes),
+          cityTransferTaxPercent: cost.cityTransferTaxPercent,
+        })}
+      />
     </Timeline>
   );
 }

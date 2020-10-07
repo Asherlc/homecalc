@@ -1,10 +1,25 @@
 import { isSameWeek } from "date-fns";
-import { add } from "lodash";
 import { Home } from "./Home";
 import Income from "./Income";
 import { Issue } from "./Issue";
 
 const CITY_TRANSFER_TAX_SPLIT = 0.5;
+const CLOSING_COST_PERCENT = 2;
+
+export function getMaximumOfferable({
+  immediateIncome,
+  immediateIssueCost,
+  cityTransferTaxPercent,
+}: {
+  immediateIncome: number;
+  immediateIssueCost: number;
+  cityTransferTaxPercent: number;
+}): number {
+  return (
+    (immediateIncome - immediateIssueCost) /
+    (1 + cityTransferTaxPercent / 100 + CLOSING_COST_PERCENT / 100)
+  );
+}
 
 export class Cost {
   issues: Issue[];
@@ -33,46 +48,14 @@ export class Cost {
     this.incomes = incomes;
   }
 
-  get totalImmediateIssueCost(): number {
-    return this.immediateIssues.reduce((total, issue) => {
-      return total + issue.buyerCost;
-    }, 0);
-  }
-
-  get totalImmediateIncome(): number {
-    return this.immediateIncomes.reduce((total, income) => {
-      return total + income.amount;
-    }, 0);
-  }
-
-  get offerableAmount(): number {
-    return this.totalImmediateIncome - this.totalImmediateIssueCost;
+  // This is extremely hard to figure out by my reckoning, but ~2% seems like a
+  // rough ballpark
+  get closingCosts(): number {
+    return this.baseCost * (CLOSING_COST_PERCENT / 100);
   }
 
   get baseCost(): number {
     return this.home.baseCost;
-  }
-
-  get immediateIssues(): Issue[] {
-    return this.issues.filter(
-      (issue) =>
-        issue.buyerCost &&
-        issue.requiredInDate &&
-        isSameWeek(issue.requiredInDate, new Date())
-    );
-  }
-
-  get immediateIncomes(): Income[] {
-    return this.incomes.filter(
-      (income) =>
-        income.amount &&
-        income.availableInDate &&
-        isSameWeek(income.availableInDate, new Date())
-    );
-  }
-
-  get total(): number {
-    return this.totalImmediateIssueCost + this.baseCost + this.cityTransferTax;
   }
 
   get annualTaxes(): number {
