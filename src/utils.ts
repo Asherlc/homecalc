@@ -1,5 +1,5 @@
 import { isSameWeek } from "date-fns";
-import Income from "./models/Income";
+import Money from "./models/Money";
 import { Issue } from "./models/Issue";
 
 type LineItem = Record<string, any>;
@@ -25,7 +25,7 @@ export function sumImmediateIssues(issues: Issue[]): number {
   return sumLineItemsBy("buyerCost")(immediate);
 }
 
-export function sumImmediateIncomes(incomes: Income[]): number {
-  const immediate = withImmediateLineItems("availableInDate")(incomes);
+export function sumImmediateMonies(monies: Money[]): number {
+  const immediate = withImmediateLineItems("availableInDate")(monies);
   return sumLineItemsBy("amount")(immediate);
 }

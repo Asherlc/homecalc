@@ -68,24 +68,24 @@ function OurSlider({ issue }: { issue: Issue }) {
         <Hidden smDown>
           <Grid item xs>
             <Slider
-              value={sellerPercent}
+              value={Math.round(sellerPercent * 100)}
               onChangeCommitted={(e, val) => {
-                updateIssue(issue.id, { sellerPercent: val as number });
+                updateIssue(issue.id, { sellerPercent: (val as number) / 100 });
               }}
               onChange={(e, val) => {
-                setSellerPercent(val as number);
+                setSellerPercent((val as number) / 100);
               }}
             />
           </Grid>
         </Hidden>
         <Grid item>
           <Input
-            value={sellerPercent}
+            value={Math.round(sellerPercent * 100)}
             margin="dense"
             onChange={(e) => {
               updateIssue(issue.id, {
                 sellerPercent: e.target.value
-                  ? parseInt(e.target.value)
+                  ? parseInt(e.target.value) / 100
                   : undefined,
               });
             }}

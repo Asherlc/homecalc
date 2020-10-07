@@ -1,3 +1,5 @@
+import classNames from "classnames";
+import numeral from "numeral";
 import { makeStyles } from "@material-ui/core/styles";
 import {
   TimelineContent,
@@ -17,9 +19,14 @@ import {
   useIssues,
 } from "../hooks/useCost";
 import Currency from "./Currency";
-import { Cost, getMaximumOfferable } from "../models/Cost";
-import { sumImmediateIncomes, sumImmediateIssues } from "../utils";
-import useIncomes from "../hooks/useIncomes";
+import {
+  CITY_TRANSFER_TAX_SPLIT,
+  CLOSING_COST_PERCENT,
+  Cost,
+  getMaximumOfferable,
+} from "../models/Cost";
+import { sumImmediateMonies, sumImmediateIssues } from "../utils";
+import useMonies from "../hooks/useMonies";
 
 const useItemStyles = makeStyles((theme) => ({
   verticallyCentering: {
@@ -28,6 +35,9 @@ const useItemStyles = makeStyles((theme) => ({
     marginTop: 0,
     paddingTop: 0,
     paddingBottom: "16px",
+  },
+  alignRight: {
+    justifyContent: "flex-end",
   },
 }));
 
@@ -38,18 +48,20 @@ function Item({
 }: {
   name: string;
   amount: number;
-  type: "cost" | "income";
+  type: "cost" | "money";
 }) {
   const classes = useItemStyles();
 
   return (
     <TimelineItem>
-      <TimelineOppositeContent className={classes.verticallyCentering}>
+      <TimelineOppositeContent
+        className={classNames(classes.verticallyCentering, classes.alignRight)}
+      >
         <Typography color="textSecondary">{name}</Typography>
       </TimelineOppositeContent>
       <TimelineSeparator>
-        <TimelineDot color={type === "income" ? "primary" : "secondary"}>
-          {type === "income" ? <Add /> : <Remove />}
+        <TimelineDot color={type === "money" ? "primary" : "secondary"}>
+          {type === "money" ? <Add /> : <Remove />}
         </TimelineDot>
         <TimelineConnector />
       </TimelineSeparator>
@@ -77,17 +89,17 @@ function Offerable({ offerableAmount }: { offerableAmount: number }) {
 
 function useMaximumOfferableCost(): Cost | undefined {
   const issues = useIssues();
-  const incomes = useIncomes();
+  const monies = useMonies();
   const cityTransferTaxPercent = useCityTransferTaxPercent();
   const costGenerator = useCostGenerator();
 
-  if (!issues || !incomes || !cityTransferTaxPercent) {
+  if (!issues || !monies || !cityTransferTaxPercent) {
     return undefined;
   }
 
   const maximumOfferable = getMaximumOfferable({
     immediateCosts: sumImmediateIssues(issues),
-    immediateMonies: sumImmediateIncomes(incomes),
+    immediateMonies: sumImmediateMonies(monies),
     percentageCosts: cityTransferTaxPercent,
   });
 
@@ -96,21 +108,21 @@ function useMaximumOfferableCost(): Cost | undefined {
 
 export default function CustomizedTimeline() {
   const issues = useIssues();
-  const incomes = useIncomes();
+  const monies = useMonies();
   const maximumOfferableCost = useMaximumOfferableCost();
 
-  if (!issues || !incomes || !maximumOfferableCost) {
+  if (!issues || !monies || !maximumOfferableCost) {
     return <CircularProgress />;
   }
 
-  const immediateMonies = sumImmediateIncomes(incomes);
+  const immediateMonies = sumImmediateMonies(monies);
 
   return (
     <Timeline>
       <Item
-        name="Total Immediate Income"
+        name="Total Immediate Monies"
         amount={immediateMonies}
-        type="income"
+        type="money"
       />
       <Item
         name="Total Immediate Issue Cost"
@@ -118,8 +130,17 @@ export default function CustomizedTimeline() {
         type="cost"
       />
       <Item
-        name={`50% of City Transfer Tax (${maximumOfferableCost.cityTransferTaxPercent}%)`}
+        name={`${numeral(CITY_TRANSFER_TAX_SPLIT).format(
+          "0%"
+        )} of City Transfer Tax (${numeral(
+          maximumOfferableCost.cityTransferTaxPercent
+        ).format("0.00%")})`}
         amount={maximumOfferableCost.cityTransferTax}
+        type="cost"
+      />
+      <Item
+        name={`Closing costs (${numeral(CLOSING_COST_PERCENT).format("0%")})`}
+        amount={maximumOfferableCost.closingCosts}
         type="cost"
       />
       <Offerable offerableAmount={maximumOfferableCost.baseCost} />

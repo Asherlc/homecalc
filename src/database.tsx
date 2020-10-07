@@ -8,5 +8,5 @@ export const database = firebase.firestore();
 export enum Collections {
   Issues = "issues",
   Homes = "homes",
-  Incomes = "incomes",
+  Monies = "incomes",
 }

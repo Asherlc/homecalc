@@ -1,13 +1,13 @@
 import { Collections, database } from "../database";
-import Income from "../models/Income";
+import Money from "../models/Money";
 import { useFirestoreCollectionConverter } from "./firebase";
 
-export default function useIncomes(): Income[] | undefined {
+export default function useMonies(): Money[] | undefined {
   return useFirestoreCollectionConverter(
     () => {
-      return database.collection(Collections.Incomes).orderBy("createdAt");
+      return database.collection(Collections.Monies).orderBy("createdAt");
     },
-    Income,
+    Money,
     []
   );
 }

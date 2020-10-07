@@ -1,40 +1,40 @@
 import MaterialTable from "material-table";
 import { insertRecord, removeRecord, updateAttribute } from "../firebaseUtils";
-import useIncomes from "../hooks/useIncomes";
-import IncomeModel, { IncomeData } from "../models/Income";
+import useMonies from "../hooks/useMonies";
+import IncomeModel, { MoneyData } from "../models/Money";
 import { icons, requiredAndDeletableField } from "./Issues";
 import { Collections } from "../database";
 import { formatMoney } from "accounting";
 
-export function Income() {
-  const incomes = useIncomes();
+export function Monies() {
+  const monies = useMonies();
 
-  if (!incomes) {
+  if (!monies) {
     return null;
   }
 
   return (
     <MaterialTable
-      title="Incomes"
+      title="Monies"
       options={{
         search: false,
         paging: false,
       }}
       icons={icons}
       editable={{
-        onRowAdd: (newData: Omit<IncomeData, "createdAt">) => {
-          return insertRecord<IncomeData>(Collections.Incomes, {
+        onRowAdd: (newData: Omit<MoneyData, "createdAt">) => {
+          return insertRecord<MoneyData>(Collections.Monies, {
             createdAt: new Date().toISOString(),
             ...newData,
           });
         },
         onRowDelete: async (oldData: IncomeModel) => {
-          removeRecord(Collections.Incomes, oldData.id);
+          removeRecord(Collections.Monies, oldData.id);
         },
       }}
       cellEditable={{
         onCellEditApproved: async (newValue, oldValue, rowData, columnDef) => {
-          updateAttribute(Collections.Incomes, rowData.id, {
+          updateAttribute(Collections.Monies, rowData.id, {
             [columnDef.field as string]: newValue,
           });
         },
@@ -60,7 +60,7 @@ export function Income() {
           validate: requiredAndDeletableField("availableIn"),
         },
       ]}
-      data={incomes}
+      data={monies}
     />
   );
 }

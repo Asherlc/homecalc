@@ -1,18 +1,18 @@
 import { parseDate } from "chrono-node";
 import { BaseModelInterface } from "./BaseModel";
 
-export interface IncomeData {
+export interface MoneyData {
   name: string;
   amount: number;
   availableIn: string;
   createdAt: string;
 }
 
-export default class Income implements BaseModelInterface {
-  protected data: IncomeData;
+export default class Money implements BaseModelInterface {
+  protected data: MoneyData;
   id: string;
 
-  constructor(id: string, data: IncomeData) {
+  constructor(id: string, data: MoneyData) {
     this.data = data;
     this.id = id;
   }

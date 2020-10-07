@@ -1,5 +1,5 @@
-const CITY_TRANSFER_TAX_SPLIT = 0.5;
-const CLOSING_COST_PERCENT = 2;
+export const CITY_TRANSFER_TAX_SPLIT = 0.5;
+export const CLOSING_COST_PERCENT = 0.02;
 
 export function getMaximumOfferable({
   immediateMonies,
@@ -10,7 +10,7 @@ export function getMaximumOfferable({
   immediateCosts: number;
   percentageCosts: number;
 }): number {
-  const dependentCosts = 1 + percentageCosts / 100 + CLOSING_COST_PERCENT / 100;
+  const dependentCosts = 1 + percentageCosts + CLOSING_COST_PERCENT;
   const maximumTotalCost = (immediateMonies - immediateCosts) / dependentCosts;
   return maximumTotalCost - dependentCosts;
 }
@@ -37,18 +37,16 @@ export class Cost {
   // This is extremely hard to figure out by my reckoning, but ~2% seems like a
   // rough ballpark
   get closingCosts(): number {
-    return this.baseCost * (CLOSING_COST_PERCENT / 100);
+    return this.baseCost * CLOSING_COST_PERCENT;
   }
 
   get annualTaxes(): number {
-    return (this.countyPropertyTaxPercent / 100) * this.baseCost;
+    return this.countyPropertyTaxPercent * this.baseCost;
   }
 
   get cityTransferTax(): number {
     return (
-      this.baseCost *
-      (this.cityTransferTaxPercent / 100) *
-      CITY_TRANSFER_TAX_SPLIT
+      this.baseCost * this.cityTransferTaxPercent * CITY_TRANSFER_TAX_SPLIT
     );
   }
 }

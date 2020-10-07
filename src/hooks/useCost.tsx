@@ -29,7 +29,7 @@ function useCityTransferTaxPercents() {
       return json.map((obj: { city: string; rate: string }) => {
         return {
           city: obj.city,
-          rate: parseFloat(obj.rate),
+          rate: parseFloat(obj.rate) / 100,
         };
       }) as CityTransferTaxRate[];
     }
@@ -53,7 +53,7 @@ function useCountyPropertyTaxPercents() {
       const formatted = json.results[0].map((row: Record<string, string>) => {
         return {
           county: row.County,
-          rate: parseFloat(row["Average Effective Property Tax Rate"]),
+          rate: parseFloat(row["Average Effective Property Tax Rate"]) / 100,
         };
       });
 

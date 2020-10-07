@@ -1,3 +1,4 @@
+import numeral from "numeral";
 import "../firebaseConfig";
 import CostFormula from "./CostFormula";
 import { formatMoney } from "accounting";
@@ -20,7 +21,7 @@ import AddressForm from "./AddressForm";
 import { useCost } from "../hooks/useCost";
 import { HomeData } from "../types/HomeData";
 import { updateAttribute } from "../firebaseUtils";
-import { Income } from "./Income";
+import { Monies } from "./Monies";
 import { Collections } from "../database";
 
 function updateHome(id: string, values: Partial<HomeData>) {
@@ -47,9 +48,9 @@ function Summary() {
       <CardContent>
         <List subheader={<ListSubheader>Summary</ListSubheader>}>
           <SummaryItem
-            name={`Annual Tax Cost (${Number(
+            name={`Annual Tax Cost (${numeral(
               cost.countyPropertyTaxPercent
-            ).toFixed(2)}%)`}
+            ).format("0.00%")}`}
             cost={formatMoney(cost.annualTaxes, undefined, 0)}
           />
         </List>
@@ -136,7 +137,7 @@ export default function HomeComponent() {
             </Card>
           </Grid>
           <Grid item xs={12}>
-            <Income />
+            <Monies />
           </Grid>
         </Grid>
         <Grid item xs={12}>
