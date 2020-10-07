@@ -1,7 +1,5 @@
-import { Issue } from "../models/Issue";
 import { Hidden, Input, Slider, Grid } from "@material-ui/core";
 import { useEffect, useState } from "react";
-import { updateIssue } from "./Issues";
 
 interface Props {
   value: number;
