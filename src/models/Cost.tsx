@@ -1,6 +1,3 @@
-import Income from "./Income";
-import { Issue } from "./Issue";
-
 const CITY_TRANSFER_TAX_SPLIT = 0.5;
 const CLOSING_COST_PERCENT = 2;
 

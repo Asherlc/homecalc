@@ -11,7 +11,7 @@ import {
 } from "@material-ui/icons";
 import { Hidden, Input, Slider, Grid } from "@material-ui/core";
 import { insertRecord, updateAttribute } from "../firebaseUtils";
-import { useCost, useIssues } from "../hooks/useCost";
+import { useIssues } from "../hooks/useCost";
 import { forwardRef, useEffect, useState } from "react";
 import { formatMoney } from "accounting";
 import { isEmpty, isNumber } from "lodash";

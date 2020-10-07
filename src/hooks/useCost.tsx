@@ -7,7 +7,6 @@ import { useCurrentHome } from "./useCurrentHome";
 import { Cost } from "../models/Cost";
 import { Collections, database } from "../database";
 import useSWR from "swr";
-import useIncomes from "./useIncomes";
 
 interface CityTransferTaxRate {
   city: string;

@@ -13,18 +13,12 @@ import { Add, Remove } from "@material-ui/icons";
 import { Typography, CircularProgress } from "@material-ui/core";
 import {
   useCityTransferTaxPercent,
-  useCost,
   useCostGenerator,
   useIssues,
 } from "../hooks/useCost";
 import Currency from "./Currency";
 import { Cost, getMaximumOfferable } from "../models/Cost";
-import {
-  sumImmediateIncomes,
-  sumImmediateIssues,
-  sumLineItemsBy,
-  withImmediateLineItems,
-} from "../utils";
+import { sumImmediateIncomes, sumImmediateIssues } from "../utils";
 import useIncomes from "../hooks/useIncomes";
 
 const useItemStyles = makeStyles((theme) => ({
