@@ -4,9 +4,16 @@ import { useEffect, useState } from "react";
 interface Props {
   value: number;
   onChangeCommitted: (val: number | undefined) => void;
+  max: number;
+  min: number;
 }
 
-export function SliderWithNumberInput({ value, onChangeCommitted }: Props) {
+export function SliderWithNumberInput({
+  value,
+  onChangeCommitted,
+  min = 0,
+  max = 100,
+}: Props) {
   const [number, setNumber] = useState(value);
 
   useEffect(() => {
@@ -26,6 +33,8 @@ export function SliderWithNumberInput({ value, onChangeCommitted }: Props) {
               onChange={(e, val) => {
                 setNumber(val as number);
               }}
+              min={min}
+              max={max}
             />
           </Grid>
         </Hidden>
@@ -43,8 +52,8 @@ export function SliderWithNumberInput({ value, onChangeCommitted }: Props) {
             }}
             inputProps={{
               step: 10,
-              min: 0,
-              max: 100,
+              min,
+              max,
               type: "number",
             }}
           />
