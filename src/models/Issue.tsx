@@ -34,7 +34,7 @@ export class Issue implements BaseModelInterface {
   }
 
   get buyerCost() {
-    return this.cost * (100 - this.sellerPercent);
+    return this.cost * (1 - this.sellerPercent);
   }
 
   get sellerPercent() {
