@@ -1,6 +1,6 @@
 import numeral from "numeral";
 import "../firebaseConfig";
-import CostFormula from "./CostFormula";
+import CostFormula from "./OfferCalculator";
 import { formatMoney } from "accounting";
 import { HomeSelector } from "./HomeSelector";
 import { useCurrentHome } from "../hooks/useCurrentHome";

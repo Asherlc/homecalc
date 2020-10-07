@@ -106,7 +106,7 @@ function useMaximumOfferableCost(): Cost | undefined {
   return costGenerator(maximumOfferable);
 }
 
-export default function CustomizedTimeline() {
+export default function OfferCalculator() {
   const issues = useIssues();
   const monies = useMonies();
   const maximumOfferableCost = useMaximumOfferableCost();

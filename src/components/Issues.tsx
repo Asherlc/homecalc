@@ -1,6 +1,6 @@
 import MaterialTable, { Icons } from "material-table";
 import * as firebase from "firebase/app";
-import { EmptyIssue, Issue, IssueData } from "../models/Issue";
+import { EmptyIssue, IssueData } from "../models/Issue";
 import {
   Remove,
   Clear,
@@ -9,14 +9,14 @@ import {
   DeleteOutline,
   Edit,
 } from "@material-ui/icons";
-import { Hidden, Input, Slider, Grid } from "@material-ui/core";
 import { insertRecord, updateAttribute } from "../firebaseUtils";
 import { useIssues } from "../hooks/useCost";
-import { forwardRef, useEffect, useState } from "react";
+import { forwardRef } from "react";
 import { formatMoney } from "accounting";
 import { isEmpty, isNumber } from "lodash";
 import { Collections } from "../database";
 import { useCurrentHome } from "../hooks/useCurrentHome";
+import { SliderWithNumberInput } from "./SliderWithNumberInput";
 
 export function deletableField(validator: (rowData: any) => any) {
   return (rowData: unknown) => {
@@ -53,53 +53,6 @@ export function updateIssue(id: string, values: IssueData): Promise<void> {
 
 export function removeIssue(id: string): Promise<void> {
   return database.collection(Collections.Issues).doc(id).delete();
-}
-
-function OurSlider({ issue }: { issue: Issue }) {
-  const [sellerPercent, setSellerPercent] = useState(issue.sellerPercent);
-
-  useEffect(() => {
-    setSellerPercent(issue.sellerPercent);
-  }, [issue.sellerPercent]);
-
-  return (
-    <div>
-      <Grid container spacing={2} alignItems="center">
-        <Hidden smDown>
-          <Grid item xs>
-            <Slider
-              value={Math.round(sellerPercent * 100)}
-              onChangeCommitted={(e, val) => {
-                updateIssue(issue.id, { sellerPercent: (val as number) / 100 });
-              }}
-              onChange={(e, val) => {
-                setSellerPercent((val as number) / 100);
-              }}
-            />
-          </Grid>
-        </Hidden>
-        <Grid item>
-          <Input
-            value={Math.round(sellerPercent * 100)}
-            margin="dense"
-            onChange={(e) => {
-              updateIssue(issue.id, {
-                sellerPercent: e.target.value
-                  ? parseInt(e.target.value) / 100
-                  : undefined,
-              });
-            }}
-            inputProps={{
-              step: 10,
-              min: 0,
-              max: 100,
-              type: "number",
-            }}
-          />
-        </Grid>
-      </Grid>
-    </div>
-  );
 }
 
 export const icons: Icons = {
@@ -177,7 +130,20 @@ export function Issues() {
           editable: "never",
           // eslint-disable-next-line react/display-name
           render: (rowData) => {
-            return <OurSlider issue={rowData} />;
+            return (
+              <SliderWithNumberInput
+                value={Math.round(rowData.sellerPercent * 100)}
+                onChangeCommitted={(val) => {
+                  if (typeof val === "undefined") {
+                    return;
+                  }
+
+                  updateIssue(rowData.id, {
+                    sellerPercent: val / 100,
+                  });
+                }}
+              />
+            );
           },
         },
       ]}
