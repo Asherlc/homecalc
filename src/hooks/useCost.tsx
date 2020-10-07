@@ -63,40 +63,58 @@ function useCountyPropertyTaxPercents() {
   );
 }
 
-export function useCost(): Cost | undefined {
+export function useCityTransferTaxPercent(): number | undefined {
   const home = useCurrentHome();
   const { data: cityTransferTaxPercents } = useCityTransferTaxPercents();
-  const { data: countyPropertyTaxPercents } = useCountyPropertyTaxPercents();
 
-  const issues = useIssues();
-  const incomes = useIncomes();
-
-  if (
-    !home ||
-    !issues ||
-    !cityTransferTaxPercents ||
-    !countyPropertyTaxPercents ||
-    !incomes
-  ) {
-    return;
+  if (!home || !cityTransferTaxPercents) {
+    return undefined;
   }
 
-  const cityTransferTaxPercent = cityTransferTaxPercents.find(({ city }) => {
+  return cityTransferTaxPercents.find(({ city }) => {
     return city === home.city;
   })?.rate as number;
-  const countyPropertyTaxPercent = countyPropertyTaxPercents.find(
-    ({ county }) => {
-      return county === home.county;
-    }
-  )?.rate as number;
+}
 
-  return new Cost({
-    incomes,
-    issues: issues,
-    home: home,
-    cityTransferTaxPercent,
-    countyPropertyTaxPercent,
-  });
+export function useCountyPropertyTaxPercent(): number | undefined {
+  const home = useCurrentHome();
+  const { data: countyPropertyTaxPercents } = useCountyPropertyTaxPercents();
+
+  if (!home || !countyPropertyTaxPercents) {
+    return undefined;
+  }
+
+  return countyPropertyTaxPercents.find(({ county }) => {
+    return county === home.county;
+  })?.rate as number;
+}
+
+export function useCostGenerator(): (baseCost: number) => Cost | undefined {
+  const cityTransferTaxPercent = useCityTransferTaxPercent();
+  const countyPropertyTaxPercent = useCountyPropertyTaxPercent();
+
+  return function (baseCost: number) {
+    if (!cityTransferTaxPercent || !countyPropertyTaxPercent) {
+      return;
+    }
+
+    return new Cost({
+      baseCost,
+      cityTransferTaxPercent,
+      countyPropertyTaxPercent,
+    });
+  };
+}
+
+export function useCost(): Cost | undefined {
+  const home = useCurrentHome();
+  const costGenerator = useCostGenerator();
+
+  if (!home) {
+    return undefined;
+  }
+
+  return costGenerator(home.askingPrice);
 }
 
 export function useIssues(): Issue[] | undefined {

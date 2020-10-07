@@ -9,7 +9,7 @@ import { withStyles } from "@material-ui/core/styles";
 
 import { addYears, eachMonthOfInterval, format } from "date-fns";
 import { Paper, CircularProgress } from "@material-ui/core";
-import { useCost } from "../hooks/useCost";
+import { useCost, useIssues } from "../hooks/useCost";
 import {
   Chart,
   BarSeries,
@@ -55,15 +55,15 @@ export const monthsFromToday = eachMonthOfInterval({
 });
 
 export function TimeChart() {
-  const cost = useCost();
+  const issues = useIssues();
   const [targetItem, setTargetItem] = useState<SeriesRef>();
 
-  if (!cost) {
+  if (!issues) {
     return <CircularProgress />;
   }
 
   const chartData = monthsFromToday.map((date) => {
-    const monthIssues = cost.issues.reduce((hash, issue) => {
+    const monthIssues = issues.reduce((hash, issue) => {
       return {
         ...hash,
         [issue.id]:
@@ -85,7 +85,7 @@ export function TimeChart() {
         <ArgumentAxis />
         <ValueAxis />
         <Plugin name="ser">
-          {cost.issues.map((issue) => {
+          {issues.map((issue) => {
             return (
               <BarSeries
                 key={issue.id}
@@ -106,7 +106,7 @@ export function TimeChart() {
         <Stack
           stacks={[
             {
-              series: cost.issues.map((issue) => issue.name || ""),
+              series: issues.map((issue) => issue.name || ""),
             },
           ]}
         />

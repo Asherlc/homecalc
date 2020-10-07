@@ -11,9 +11,14 @@ import {
 } from "@material-ui/lab";
 import { Add, Remove } from "@material-ui/icons";
 import { Typography, CircularProgress } from "@material-ui/core";
-import { useCost, useIssues } from "../hooks/useCost";
+import {
+  useCityTransferTaxPercent,
+  useCost,
+  useCostGenerator,
+  useIssues,
+} from "../hooks/useCost";
 import Currency from "./Currency";
-import { getMaximumOfferable } from "../models/Cost";
+import { Cost, getMaximumOfferable } from "../models/Cost";
 import {
   sumImmediateIncomes,
   sumImmediateIssues,
@@ -76,20 +81,41 @@ function Offerable({ offerableAmount }: { offerableAmount: number }) {
   );
 }
 
+function useMaximumOfferableCost(): Cost | undefined {
+  const issues = useIssues();
+  const incomes = useIncomes();
+  const cityTransferTaxPercent = useCityTransferTaxPercent();
+  const costGenerator = useCostGenerator();
+
+  if (!issues || !incomes || !cityTransferTaxPercent) {
+    return undefined;
+  }
+
+  const maximumOfferable = getMaximumOfferable({
+    immediateCosts: sumImmediateIssues(issues),
+    immediateMonies: sumImmediateIncomes(incomes),
+    percentageCosts: cityTransferTaxPercent,
+  });
+
+  return costGenerator(maximumOfferable);
+}
+
 export default function CustomizedTimeline() {
   const issues = useIssues();
   const incomes = useIncomes();
-  const cost = useCost();
+  const maximumOfferableCost = useMaximumOfferableCost();
 
-  if (!cost || !issues || !incomes) {
+  if (!issues || !incomes || !maximumOfferableCost) {
     return <CircularProgress />;
   }
+
+  const immediateMonies = sumImmediateIncomes(incomes);
 
   return (
     <Timeline>
       <Item
         name="Total Immediate Income"
-        amount={sumImmediateIncomes(incomes)}
+        amount={immediateMonies}
         type="income"
       />
       <Item
@@ -98,17 +124,11 @@ export default function CustomizedTimeline() {
         type="cost"
       />
       <Item
-        name={`50% of City Transfer Tax (${cost.cityTransferTaxPercent}%)`}
-        amount={cost.cityTransferTax}
+        name={`50% of City Transfer Tax (${maximumOfferableCost.cityTransferTaxPercent}%)`}
+        amount={maximumOfferableCost.cityTransferTax}
         type="cost"
       />
-      <Offerable
-        offerableAmount={getMaximumOfferable({
-          immediateIssueCost: sumImmediateIssues(issues),
-          immediateIncome: sumImmediateIncomes(incomes),
-          cityTransferTaxPercent: cost.cityTransferTaxPercent,
-        })}
-      />
+      <Offerable offerableAmount={maximumOfferableCost.baseCost} />
     </Timeline>
   );
 }

@@ -17,7 +17,7 @@ export class Home implements BaseModelInterface {
     this.id = id;
   }
 
-  get baseCost(): number {
+  get askingPrice(): number {
     return this.data.baseCost || 0;
   }
 

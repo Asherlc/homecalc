@@ -1,5 +1,3 @@
-import { isSameWeek } from "date-fns";
-import { Home } from "./Home";
 import Income from "./Income";
 import { Issue } from "./Issue";
 
@@ -7,55 +5,42 @@ const CITY_TRANSFER_TAX_SPLIT = 0.5;
 const CLOSING_COST_PERCENT = 2;
 
 export function getMaximumOfferable({
-  immediateIncome,
-  immediateIssueCost,
-  cityTransferTaxPercent,
+  immediateMonies,
+  immediateCosts,
+  percentageCosts,
 }: {
-  immediateIncome: number;
-  immediateIssueCost: number;
-  cityTransferTaxPercent: number;
+  immediateMonies: number;
+  immediateCosts: number;
+  percentageCosts: number;
 }): number {
-  return (
-    (immediateIncome - immediateIssueCost) /
-    (1 + cityTransferTaxPercent / 100 + CLOSING_COST_PERCENT / 100)
-  );
+  const dependentCosts = 1 + percentageCosts / 100 + CLOSING_COST_PERCENT / 100;
+  const maximumTotalCost = (immediateMonies - immediateCosts) / dependentCosts;
+  return maximumTotalCost - dependentCosts;
 }
 
 export class Cost {
-  issues: Issue[];
-  incomes: Income[];
-  home: Home;
+  baseCost: number;
   cityTransferTaxPercent: number;
   countyPropertyTaxPercent: number;
 
   constructor({
-    issues,
-    home,
-    incomes,
+    baseCost,
     cityTransferTaxPercent,
     countyPropertyTaxPercent,
   }: {
-    issues: Issue[];
-    incomes: Income[];
-    home: Home;
+    baseCost: number;
     cityTransferTaxPercent: number;
     countyPropertyTaxPercent: number;
   }) {
-    this.issues = issues;
-    this.home = home;
+    this.baseCost = baseCost;
     this.cityTransferTaxPercent = cityTransferTaxPercent;
     this.countyPropertyTaxPercent = countyPropertyTaxPercent;
-    this.incomes = incomes;
   }
 
   // This is extremely hard to figure out by my reckoning, but ~2% seems like a
   // rough ballpark
   get closingCosts(): number {
     return this.baseCost * (CLOSING_COST_PERCENT / 100);
-  }
-
-  get baseCost(): number {
-    return this.home.baseCost;
   }
 
   get annualTaxes(): number {

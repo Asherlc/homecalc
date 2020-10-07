@@ -11,11 +11,12 @@ import {
 } from "@material-ui/icons";
 import { Hidden, Input, Slider, Grid } from "@material-ui/core";
 import { insertRecord, updateAttribute } from "../firebaseUtils";
-import { useCost } from "../hooks/useCost";
+import { useCost, useIssues } from "../hooks/useCost";
 import { forwardRef, useEffect, useState } from "react";
 import { formatMoney } from "accounting";
 import { isEmpty, isNumber } from "lodash";
 import { Collections } from "../database";
+import { useCurrentHome } from "../hooks/useCurrentHome";
 
 export function deletableField(validator: (rowData: any) => any) {
   return (rowData: unknown) => {
@@ -117,9 +118,10 @@ export const icons: Icons = {
 };
 
 export function Issues() {
-  const cost = useCost();
+  const issues = useIssues();
+  const home = useCurrentHome();
 
-  if (!cost) {
+  if (!issues || !home) {
     return null;
   }
 
@@ -135,7 +137,7 @@ export function Issues() {
         onRowAdd: (newData: Record<string, any>) => {
           return insertRecord<IssueData>(Collections.Issues, {
             ...EmptyIssue,
-            homeId: cost.home.id,
+            homeId: home.id,
             createdAt: new Date().toISOString(),
             ...(newData as IssueData),
           });
@@ -179,7 +181,7 @@ export function Issues() {
           },
         },
       ]}
-      data={cost.issues}
+      data={issues}
     />
   );
 }

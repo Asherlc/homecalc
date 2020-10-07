@@ -69,9 +69,9 @@ function Basics() {
     <Grid container spacing={3}>
       <Grid item xs={12} sm={6}>
         <PriceInput
-          label="Base Price"
+          label="Asking Price"
           placeholder="$800,000"
-          value={currentHome.baseCost}
+          value={currentHome.askingPrice}
           onChange={(val) => {
             updateHome(currentHome.id, { baseCost: val });
           }}
