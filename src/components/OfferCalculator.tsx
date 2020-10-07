@@ -15,9 +15,10 @@ import { Add, Remove } from "@material-ui/icons";
 import { Typography, CircularProgress } from "@material-ui/core";
 import {
   useCityTransferTaxPercent,
+  useCost,
   useCostGenerator,
-  useIssues,
 } from "../hooks/useCost";
+import { useIssues } from "../hooks/useIssues";
 import Currency from "./Currency";
 import {
   CITY_TRANSFER_TAX_SPLIT,
@@ -27,6 +28,9 @@ import {
 } from "../models/Cost";
 import { sumImmediateMonies, sumImmediateIssues } from "../utils";
 import useMonies from "../hooks/useMonies";
+import { SliderWithNumberInput } from "./SliderWithNumberInput";
+import { useEffect, useState } from "react";
+import { PriceInput } from "./inputs";
 
 const useItemStyles = makeStyles((theme) => ({
   verticallyCentering: {
@@ -107,11 +111,21 @@ function useMaximumOfferableCost(): Cost | undefined {
 }
 
 export default function OfferCalculator() {
+  const [offer, setOffer] = useState<Cost>();
   const issues = useIssues();
   const monies = useMonies();
   const maximumOfferableCost = useMaximumOfferableCost();
 
-  if (!issues || !monies || !maximumOfferableCost) {
+  useEffect(() => {
+    if (!offer) {
+      setOffer(maximumOfferableCost);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(maximumOfferableCost), !!offer]);
+
+  const costGenerator = useCostGenerator();
+
+  if (!issues || !monies || !maximumOfferableCost || !offer) {
     return <CircularProgress />;
   }
 
@@ -119,6 +133,15 @@ export default function OfferCalculator() {
 
   return (
     <Timeline>
+      <SliderWithNumberInput
+        value={offer.baseCost}
+        onChange={(newOfferBaseCost) => {
+          setOffer(costGenerator(newOfferBaseCost));
+        }}
+        max={maximumOfferableCost.baseCost}
+        min={0}
+        inputComponent={PriceInput}
+      />
       <Item
         name="Total Immediate Monies"
         amount={immediateMonies}
@@ -132,15 +155,15 @@ export default function OfferCalculator() {
       <Item
         name={`${numeral(CITY_TRANSFER_TAX_SPLIT).format(
           "0%"
-        )} of City Transfer Tax (${numeral(
-          maximumOfferableCost.cityTransferTaxPercent
-        ).format("0.00%")})`}
-        amount={maximumOfferableCost.cityTransferTax}
+        )} of City Transfer Tax (${numeral(offer.cityTransferTaxPercent).format(
+          "0.00%"
+        )})`}
+        amount={offer.cityTransferTax}
         type="cost"
       />
       <Item
         name={`Closing costs (${numeral(CLOSING_COST_PERCENT).format("0%")})`}
-        amount={maximumOfferableCost.closingCosts}
+        amount={offer.closingCosts}
         type="cost"
       />
       <Offerable offerableAmount={maximumOfferableCost.baseCost} />

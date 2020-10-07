@@ -10,7 +10,7 @@ import {
   Edit,
 } from "@material-ui/icons";
 import { insertRecord, updateAttribute } from "../firebaseUtils";
-import { useIssues } from "../hooks/useCost";
+import { useIssues } from "../hooks/useIssues";
 import { forwardRef } from "react";
 import { formatMoney } from "accounting";
 import { isEmpty, isNumber } from "lodash";

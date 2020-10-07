@@ -1,24 +1,28 @@
-import { Hidden, Input, Slider, Grid } from "@material-ui/core";
-import { useEffect, useState } from "react";
+import { Hidden, Input, Slider, Grid, InputProps } from "@material-ui/core";
+import { ComponentType, useEffect, useState } from "react";
 
 interface Props {
   value: number;
-  onChangeCommitted: (val: number | undefined) => void;
-  max: number;
-  min: number;
+  onChangeCommitted?: (val: number) => void;
+  onChange?: (val: number) => void;
+  max?: number;
+  min?: number;
+  inputComponent?: ComponentType<InputProps>;
 }
 
 export function SliderWithNumberInput({
   value,
   onChangeCommitted,
+  onChange,
   min = 0,
   max = 100,
+  inputComponent: InputComponent = Input,
 }: Props) {
   const [number, setNumber] = useState(value);
 
   useEffect(() => {
-    setNumber(number);
-  }, [number]);
+    setNumber(value);
+  }, [value]);
 
   return (
     <div>
@@ -28,10 +32,15 @@ export function SliderWithNumberInput({
             <Slider
               value={number}
               onChangeCommitted={(e, val) => {
-                onChangeCommitted(val as number);
+                if (onChangeCommitted) {
+                  onChangeCommitted(val as number);
+                }
               }}
               onChange={(e, val) => {
                 setNumber(val as number);
+                if (onChange) {
+                  onChange(val as number);
+                }
               }}
               min={min}
               max={max}
@@ -39,7 +48,7 @@ export function SliderWithNumberInput({
           </Grid>
         </Hidden>
         <Grid item>
-          <Input
+          <InputComponent
             value={number}
             margin="dense"
             onChange={(e) => {
@@ -48,7 +57,11 @@ export function SliderWithNumberInput({
                 return;
               }
               setNumber(int);
-              onChangeCommitted(int);
+              if (onChange) {
+                onChange(int);
+              } else if (onChangeCommitted) {
+                onChangeCommitted(int);
+              }
             }}
             inputProps={{
               step: 10,

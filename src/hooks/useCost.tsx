@@ -1,11 +1,8 @@
 import cheerio from "cheerio";
 import Tabletojson from "html-table-to-json";
 import xmlParser from "fast-xml-parser";
-import { useFirestoreCollectionConverter } from "./firebase";
-import { Issue } from "../models/Issue";
 import { useCurrentHome } from "./useCurrentHome";
 import { Cost } from "../models/Cost";
-import { Collections, database } from "../database";
 import useSWR from "swr";
 
 interface CityTransferTaxRate {
@@ -93,6 +90,7 @@ export function useCostGenerator(): (baseCost: number) => Cost | undefined {
   const countyPropertyTaxPercent = useCountyPropertyTaxPercent();
 
   return function (baseCost: number) {
+    console.log("Generating cost");
     if (!cityTransferTaxPercent || !countyPropertyTaxPercent) {
       return;
     }
@@ -114,21 +112,4 @@ export function useCost(): Cost | undefined {
   }
 
   return costGenerator(home.askingPrice);
-}
-
-export function useIssues(): Issue[] | undefined {
-  const home = useCurrentHome();
-
-  return useFirestoreCollectionConverter(
-    () => {
-      return home?.id
-        ? database
-            .collection(Collections.Issues)
-            .where("homeId", "==", home.id)
-            .orderBy("createdAt")
-        : undefined;
-    },
-    Issue,
-    [home?.id]
-  );
 }

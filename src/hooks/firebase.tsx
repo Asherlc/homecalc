@@ -43,14 +43,14 @@ export function useFirestoreCollectionConverter(
   Model: any,
   deps: DependencyList | undefined
 ) {
-  const collection = getCollection();
-
   const [snapshot, setSnapshot] = useState<
     | firebase.firestore.QuerySnapshot<firebase.firestore.DocumentData>
     | undefined
   >();
 
   useEffect(() => {
+    const collection = getCollection();
+
     return collection?.onSnapshot((snapshot) => {
       setSnapshot(snapshot);
     });

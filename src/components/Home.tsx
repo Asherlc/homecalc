@@ -4,7 +4,7 @@ import CostFormula from "./OfferCalculator";
 import { formatMoney } from "accounting";
 import { HomeSelector } from "./HomeSelector";
 import { useCurrentHome } from "../hooks/useCurrentHome";
-import { PriceInput } from "./inputs";
+import CurrencyTextField from "@unicef/material-ui-currency-textfield";
 import { Issues } from "./Issues";
 import { TimeChart } from "./TimeChart";
 import {
