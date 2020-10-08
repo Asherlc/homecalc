@@ -1,7 +1,6 @@
 import numeral from "numeral";
 import "../firebaseConfig";
 import CostFormula from "./OfferCalculator";
-import { formatMoney } from "accounting";
 import { HomeSelector } from "./HomeSelector";
 import { useCurrentHome } from "../hooks/useCurrentHome";
 import { Issues } from "./Issues";
@@ -22,6 +21,7 @@ import { HomeData } from "../types/HomeData";
 import { updateAttribute } from "../firebaseUtils";
 import { Monies } from "./Monies";
 import { Collections } from "../database";
+import { PriceField } from "./inputs";
 
 function updateHome(id: string, values: Partial<HomeData>) {
   return updateAttribute(Collections.Homes, id, values);
@@ -50,7 +50,7 @@ function Summary() {
             name={`Annual Tax Cost (${numeral(
               cost.countyPropertyTaxPercent
             ).format("0.00%")}`}
-            cost={formatMoney(cost.annualTaxes, undefined, 0)}
+            cost={numeral(cost.annualTaxes).format("$0,0")}
           />
         </List>
       </CardContent>
@@ -68,12 +68,14 @@ function Basics() {
   return (
     <Grid container spacing={3}>
       <Grid item xs={12} sm={6}>
-        <PriceInput
+        <PriceField
           label="Asking Price"
           placeholder="$800,000"
           value={currentHome.askingPrice}
-          onChange={(val) => {
-            updateHome(currentHome.id, { baseCost: val });
+          onChange={(event) => {
+            updateHome(currentHome.id, {
+              baseCost: parseInt(event.target.value),
+            });
           }}
         />
       </Grid>

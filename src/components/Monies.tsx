@@ -1,10 +1,10 @@
+import numeral from "numeral";
 import MaterialTable from "material-table";
 import { insertRecord, removeRecord, updateAttribute } from "../firebaseUtils";
 import useMonies from "../hooks/useMonies";
 import IncomeModel, { MoneyData } from "../models/Money";
 import { icons, requiredAndDeletableField } from "./Issues";
 import { Collections } from "../database";
-import { formatMoney } from "accounting";
 
 export function Monies() {
   const monies = useMonies();
@@ -51,7 +51,7 @@ export function Monies() {
           field: "amount",
           validate: requiredAndDeletableField("amount"),
           render: function AmountCell(rowData) {
-            return formatMoney(rowData.amount, undefined, 0);
+            return numeral(rowData.amount).format("$0,0");
           },
         },
         {

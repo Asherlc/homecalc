@@ -1,5 +1,5 @@
-import { formatMoney } from "accounting";
+import numeral from "numeral";
 
 export default function Currency({ children }: { children: number }) {
-  return <>{formatMoney(children, undefined, 0)}</>;
+  return <>{numeral(children).format("$0,0")}</>;
 }

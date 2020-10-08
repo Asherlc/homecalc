@@ -1,3 +1,4 @@
+import numeral from "numeral";
 import MaterialTable, { Icons } from "material-table";
 import * as firebase from "firebase/app";
 import { EmptyIssue, IssueData } from "../models/Issue";
@@ -12,7 +13,6 @@ import {
 import { insertRecord, updateAttribute } from "../firebaseUtils";
 import { useIssues } from "../hooks/useIssues";
 import { forwardRef } from "react";
-import { formatMoney } from "accounting";
 import { isEmpty, isNumber } from "lodash";
 import { Collections } from "../database";
 import { useCurrentHome } from "../hooks/useCurrentHome";
@@ -116,7 +116,7 @@ export function Issues() {
           field: "cost",
           validate: requiredAndDeletableField("cost"),
           render: (rowData) => {
-            return formatMoney(rowData.cost, undefined, 0);
+            return numeral(rowData.cost).format("$0,0");
           },
         },
         {

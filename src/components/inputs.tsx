@@ -1,26 +1,39 @@
-import { isNumber } from "lodash";
-import { TextField } from "@material-ui/core";
-import { formatMoney, unformat as unformatMoney } from "accounting";
+import { TextField, TextFieldProps } from "@material-ui/core";
+import NumberFormat from "react-number-format";
 import { useEffect, useState } from "react";
 
-export function PriceInput({
-  placeholder,
-  onChange,
-  value,
-  ...props
-}: {
-  onChange: (val: number) => void;
-  value?: number;
-  placeholder?: string;
-  label?: string;
-}) {
+interface NumberFormatCustomProps {
+  inputRef: (instance: NumberFormat | null) => void;
+  onChange: (event: { target: { name: string; value: string } }) => void;
+  name: string;
+}
+
+function PriceInput({ inputRef, onChange, ...props }: NumberFormatCustomProps) {
   return (
-    <TextInput
-      placeholder={placeholder}
-      value={value?.toString()}
-      format={(val) => formatMoney(val, undefined, 0)}
-      unformat={(val) => unformatMoney(String(val))}
-      onChange={(val) => onChange(isNumber(val) ? val : parseInt(val || ""))}
+    <NumberFormat
+      {...props}
+      getInputRef={inputRef}
+      onValueChange={(values) => {
+        onChange({
+          target: {
+            name: props.name,
+            value: values.value,
+          },
+        });
+      }}
+      thousandSeparator
+      isNumericString
+      prefix="$"
+    />
+  );
+}
+
+export function PriceField({ ...props }: TextFieldProps) {
+  return (
+    <TextField
+      InputProps={{
+        inputComponent: PriceInput as any,
+      }}
       {...props}
     />
   );

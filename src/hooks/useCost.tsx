@@ -4,6 +4,7 @@ import xmlParser from "fast-xml-parser";
 import { useCurrentHome } from "./useCurrentHome";
 import { Cost } from "../models/Cost";
 import useSWR from "swr";
+import { useCallback, useMemo } from "react";
 
 interface CityTransferTaxRate {
   city: string;
@@ -29,7 +30,8 @@ function useCityTransferTaxPercents() {
           rate: parseFloat(obj.rate) / 100,
         };
       }) as CityTransferTaxRate[];
-    }
+    },
+    { revalidateOnMount: false, revalidateOnReconnect: false }
   );
 }
 
@@ -63,44 +65,52 @@ export function useCityTransferTaxPercent(): number | undefined {
   const home = useCurrentHome();
   const { data: cityTransferTaxPercents } = useCityTransferTaxPercents();
 
-  if (!home || !cityTransferTaxPercents) {
-    return undefined;
-  }
+  return useMemo(() => {
+    if (!home || !cityTransferTaxPercents) {
+      return undefined;
+    }
 
-  return cityTransferTaxPercents.find(({ city }) => {
-    return city === home.city;
-  })?.rate as number;
+    return cityTransferTaxPercents.find(({ city }) => {
+      return city === home.city;
+    })?.rate as number;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(home), JSON.stringify(cityTransferTaxPercents)]);
 }
 
 export function useCountyPropertyTaxPercent(): number | undefined {
   const home = useCurrentHome();
   const { data: countyPropertyTaxPercents } = useCountyPropertyTaxPercents();
 
-  if (!home || !countyPropertyTaxPercents) {
-    return undefined;
-  }
+  return useMemo(() => {
+    if (!home || !countyPropertyTaxPercents) {
+      return undefined;
+    }
 
-  return countyPropertyTaxPercents.find(({ county }) => {
-    return county === home.county;
-  })?.rate as number;
+    return countyPropertyTaxPercents.find(({ county }) => {
+      return county === home.county;
+    })?.rate as number;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(home), JSON.stringify(countyPropertyTaxPercents)]);
 }
 
 export function useCostGenerator(): (baseCost: number) => Cost | undefined {
   const cityTransferTaxPercent = useCityTransferTaxPercent();
   const countyPropertyTaxPercent = useCountyPropertyTaxPercent();
 
-  return function (baseCost: number) {
-    console.log("Generating cost");
-    if (!cityTransferTaxPercent || !countyPropertyTaxPercent) {
-      return;
-    }
+  return useCallback(
+    (baseCost: number) => {
+      if (!cityTransferTaxPercent || !countyPropertyTaxPercent) {
+        return;
+      }
 
-    return new Cost({
-      baseCost,
-      cityTransferTaxPercent,
-      countyPropertyTaxPercent,
-    });
-  };
+      return new Cost({
+        baseCost,
+        cityTransferTaxPercent,
+        countyPropertyTaxPercent,
+      });
+    },
+    [cityTransferTaxPercent, countyPropertyTaxPercent]
+  );
 }
 
 export function useCost(): Cost | undefined {

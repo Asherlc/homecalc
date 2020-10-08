@@ -28,6 +28,7 @@ module.exports = {
     "react-hooks/rules-of-hooks": "error", // Checks rules of Hooks
     "react-hooks/exhaustive-deps": "error", // Checks effect dependencies
     "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": ["error"],
   },
   settings: {
     react: {
