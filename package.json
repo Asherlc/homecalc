@@ -11,9 +11,6 @@
   },
   "dependencies": {
     "@devexpress/dx-core": "^2.7.2",
-    "@devexpress/dx-react-chart": "^2.7.2",
-    "@devexpress/dx-react-chart-material-ui": "^2.7.2",
-    "@devexpress/dx-react-core": "^2.7.2",
     "@material-ui/core": "^4.11.0",
     "@material-ui/icons": "^4.9.1",
     "@material-ui/lab": "^4.0.0-alpha.56",
@@ -22,6 +19,7 @@
     "@types/lodash": "^4.14.161",
     "@types/numeral": "^0.0.28",
     "@types/react-select": "^3.0.21",
+    "@types/recharts": "^1.8.16",
     "autoprefixer": "9.8.6",
     "cheerio": "^1.0.0-rc.3",
     "chrono-node": "^2.1.8",
@@ -42,6 +40,7 @@
     "react-dom": "16.13.1",
     "react-number-format": "^4.4.1",
     "react-use": "^15.3.4",
+    "recharts": "^1.8.5",
     "swr": "^0.3.5",
     "use-debounce": "^5.0.1"
   },

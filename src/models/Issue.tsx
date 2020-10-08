@@ -3,7 +3,7 @@ import { BaseModelInterface } from "./BaseModel";
 
 export interface IssueData {
   createdAt?: string;
-  name?: string;
+  name: string;
   cost?: number;
   requiredIn?: string;
   homeId?: string;

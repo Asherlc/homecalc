@@ -1,51 +1,19 @@
 import {
-  EventTracker,
-  Stack,
-  Animation,
-  SeriesRef,
-} from "@devexpress/dx-react-chart";
-import { Plugin } from "@devexpress/dx-react-core";
-import { withStyles } from "@material-ui/core/styles";
+  ComposedChart,
+  Line,
+  Area,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 import { addYears, eachMonthOfInterval, format } from "date-fns";
-import { Paper, CircularProgress } from "@material-ui/core";
+import { colors, Paper, CircularProgress } from "@material-ui/core";
 import { useIssues } from "../hooks/useIssues";
-import {
-  Chart,
-  BarSeries,
-  Title,
-  ArgumentAxis,
-  Tooltip,
-  ValueAxis,
-  Legend,
-} from "@devexpress/dx-react-chart-material-ui";
-import { useState } from "react";
-
-const legendStyles = () => ({
-  root: {
-    display: "flex",
-    margin: "auto",
-    flexDirection: "row",
-  },
-});
-const legendRootBase = ({ classes, ...restProps }: any) => (
-  <Legend.Root {...restProps} className={classes.root} />
-);
-const Root = withStyles(legendStyles as any, { name: "LegendRoot" })(
-  legendRootBase
-);
-
-const legendLabelStyles = () => ({
-  label: {
-    whiteSpace: "nowrap",
-  },
-});
-const legendLabelBase = ({ classes, ...restProps }: any) => (
-  <Legend.Label className={classes.label} {...restProps} />
-);
-const Label = withStyles(legendLabelStyles as any, { name: "LegendLabel" })(
-  legendLabelBase
-);
 
 const today = new Date();
 const inOneYear = addYears(today, 1);
@@ -54,72 +22,61 @@ export const monthsFromToday = eachMonthOfInterval({
   end: inOneYear,
 });
 
+function getColor(index: number): string {
+  const colorArray = Object.values(colors).map((color) => (color as any)[300]);
+  return colorArray[index % colorArray.length];
+}
+
 export function TimeChart() {
   const issues = useIssues();
-  const [targetItem, setTargetItem] = useState<SeriesRef>();
 
   if (!issues) {
     return <CircularProgress />;
   }
 
   const chartData = monthsFromToday.map((date) => {
-    const monthIssues = issues.reduce((hash, issue) => {
-      return {
-        ...hash,
-        [issue.id]:
-          issue.requiredInDate?.getMonth() === date.getMonth()
-            ? issue.buyerCost
-            : 0,
-      };
-    }, {});
-    const month = {
-      month: format(date, "MMMM"),
-    };
-
-    return { ...month, ...monthIssues };
+    return issues
+      .filter((issue) => {
+        return issue.requiredInDate?.getMonth() === date.getMonth();
+      })
+      .reduce(
+        (hash, issue) => {
+          return {
+            ...hash,
+            [issue.name]: issue.cost,
+          };
+        },
+        {
+          name: format(date, "MMM"),
+        }
+      );
   });
 
   return (
     <Paper>
-      <Chart data={chartData}>
-        <ArgumentAxis />
-        <ValueAxis />
-        <Plugin name="ser">
-          {issues.map((issue) => {
+      <ResponsiveContainer height={500} width="100%">
+        <ComposedChart data={chartData}>
+          <CartesianGrid stroke="#f5f5f5" />
+          <XAxis dataKey="name" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Area type="monotone" dataKey="amt" fill="#8884d8" stroke="#8884d8" />
+          {issues.map((issue, index) => {
             return (
-              <BarSeries
+              <Bar
                 key={issue.id}
-                name={issue.name}
-                valueField={issue.id}
-                argumentField={"month"}
+                dataKey={issue.name}
+                barSize={20}
+                fill={getColor(index)}
+                stackId="a"
               />
             );
           })}
-        </Plugin>
-        <Title text="Cost Per Month" />
-
-        <Legend
-          position="bottom"
-          rootComponent={Root as any}
-          labelComponent={Label as any}
-        />
-        <Stack
-          stacks={[
-            {
-              series: issues.map((issue) => issue.name || ""),
-            },
-          ]}
-        />
-        <Animation />
-        <EventTracker />
-        <Tooltip
-          contentComponent={() => {
-            return <>{targetItem?.series}</>;
-          }}
-          targetItem={targetItem}
-          onTargetItemChange={setTargetItem}
-        />
-      </Chart>
+          <Line type="monotone" dataKey="uv" stroke="#ff7300" />
+          {/* <Scatter dataKey="cnt" fill="red" /> */}
+        </ComposedChart>
+      </ResponsiveContainer>
     </Paper>
   );
 }
