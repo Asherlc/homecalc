@@ -109,7 +109,7 @@ export function TimeChart() {
               key={issue.id}
               name={issue.name}
               dataKey={(point) => {
-                return point[`cost:${issue.name}`] ?? 0;
+                return point[`cost:${issue.name}`] ?? null;
               }}
               barSize={60}
               stackId={"a"}
