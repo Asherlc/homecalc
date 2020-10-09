@@ -1,10 +1,16 @@
 import { Collections, database } from "./database";
+import { Unsaved } from "./types/RecordData";
 
 export async function insertRecord<T>(
   collectionName: Collections,
-  value: T
+  value: Unsaved<T>
 ): Promise<string> {
-  return (await database.collection(collectionName).add(value)).id;
+  return (
+    await database.collection(collectionName).add({
+      createdAt: Date.now(),
+      ...value,
+    })
+  ).id;
 }
 
 export function updateAttribute(

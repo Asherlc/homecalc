@@ -1,12 +1,7 @@
 import StyledFirebaseAuth from "react-firebaseui/StyledFirebaseAuth";
-import * as firebase from "firebase";
-import {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import * as firebase from "firebase/app";
+import "firebase/auth";
+import { createContext, useContext, useEffect, useState } from "react";
 
 const AuthContext = createContext<{ user: firebase.User | null }>({
   user: null,
@@ -17,8 +12,6 @@ export function AuthProvider({ children }: any) {
 
   useEffect(() => {
     return firebase.auth().onIdTokenChanged(async (user) => {
-      console.log(`auth changed`);
-      console.log(user ? user.uid : "NO USER");
       setUser(user);
     });
   }, []);

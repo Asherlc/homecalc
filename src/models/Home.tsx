@@ -1,7 +1,7 @@
 import { HomeData } from "../types/HomeData";
 import { BaseModelInterface } from "./BaseModel";
 
-export const EmptyHome: HomeData = {
+export const EmptyHome = {
   address: "",
   city: "",
   county: "",
@@ -21,15 +21,19 @@ export class Home implements BaseModelInterface {
     return this.data.baseCost || 0;
   }
 
-  get county() {
+  get county(): string {
     return this.data.county;
   }
 
-  get address() {
+  get address(): string {
     return this.data.address;
   }
 
-  get city() {
+  get city(): string {
     return this.data.city;
+  }
+
+  get uid(): string {
+    return this.data.uid;
   }
 }

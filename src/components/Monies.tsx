@@ -5,9 +5,13 @@ import useMonies from "../hooks/useMonies";
 import IncomeModel, { MoneyData } from "../models/Money";
 import { icons, requiredAndDeletableField } from "./Issues";
 import { Collections } from "../database";
+import { useAuth } from "./Login";
+import { Unsaved } from "../types/RecordData";
+import { WithoutUser } from "../types/UserScoped";
 
 export function Monies() {
   const monies = useMonies();
+  const { user } = useAuth();
 
   if (!monies) {
     return null;
@@ -22,9 +26,9 @@ export function Monies() {
       }}
       icons={icons}
       editable={{
-        onRowAdd: (newData: Omit<MoneyData, "createdAt">) => {
+        onRowAdd: (newData: WithoutUser<Unsaved<MoneyData>>) => {
           return insertRecord<MoneyData>(Collections.Monies, {
-            createdAt: new Date().toISOString(),
+            uid: user!.uid,
             ...newData,
           });
         },

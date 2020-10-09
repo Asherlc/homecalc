@@ -1,7 +1,9 @@
 import { parseDate } from "chrono-node";
+import RecordData from "../types/RecordData";
+import UserScoped from "../types/UserScoped";
 import { BaseModelInterface } from "./BaseModel";
 
-export interface MoneyData {
+export interface MoneyData extends UserScoped, RecordData {
   name: string;
   amount: number;
   availableIn: string;
@@ -15,6 +17,10 @@ export default class Money implements BaseModelInterface {
   constructor(id: string, data: MoneyData) {
     this.data = data;
     this.id = id;
+  }
+
+  get uid(): string {
+    return this.data.uid;
   }
 
   get amount(): number {

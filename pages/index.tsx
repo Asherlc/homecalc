@@ -8,12 +8,16 @@ import { Login, useAuth } from "../src/components/Login";
 
 function HomeCreator() {
   const router = useRouter();
+  const { user } = useAuth();
 
   return (
     <AddressForm
       autosave={false}
       onSubmit={async (address) => {
-        const id = await insertRecord(Collections.Homes, address);
+        const id = await insertRecord(Collections.Homes, {
+          ...address,
+          uid: user!.uid,
+        });
 
         router.push(`/homes/${id}`);
       }}

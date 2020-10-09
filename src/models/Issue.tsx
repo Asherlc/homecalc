@@ -1,7 +1,8 @@
 import { parseDate } from "chrono-node";
+import RecordData from "../types/RecordData";
 import { BaseModelInterface } from "./BaseModel";
 
-export interface IssueData {
+export interface IssueData extends RecordData {
   createdAt: string;
   name: string;
   cost: number;

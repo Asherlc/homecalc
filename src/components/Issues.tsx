@@ -1,7 +1,7 @@
 import numeral from "numeral";
 import MaterialTable, { Icons } from "material-table";
 import * as firebase from "firebase/app";
-import { EmptyIssue, IssueData } from "../models/Issue";
+import { EmptyIssue, Issue, IssueData } from "../models/Issue";
 import {
   Remove,
   Clear,
@@ -17,6 +17,8 @@ import { isEmpty, isNumber } from "lodash";
 import { Collections } from "../database";
 import { useCurrentHome } from "../hooks/useCurrentHome";
 import { SliderWithNumberInput } from "./SliderWithNumberInput";
+import { Unsaved } from "../types/RecordData";
+import { WithoutHome } from "../types/UserScoped";
 
 export function deletableField(validator: (rowData: any) => any) {
   return (rowData: unknown) => {
@@ -82,7 +84,7 @@ export function Issues() {
   }
 
   return (
-    <MaterialTable
+    <MaterialTable<Issue>
       title="Issues"
       options={{
         search: false,
@@ -90,16 +92,18 @@ export function Issues() {
       }}
       icons={icons}
       editable={{
-        onRowAdd: (newData: Record<string, any>) => {
+        onRowAdd: (newData: WithoutHome<Unsaved<IssueData>>) => {
           return insertRecord<IssueData>(Collections.Issues, {
             ...EmptyIssue,
             homeId: home.id,
-            createdAt: new Date().toISOString(),
             ...(newData as any),
           });
         },
-        onRowDelete: async (oldData) => {
-          removeIssue(oldData.id);
+        onRowDelete: async ({ id }: Issue) => {
+          if (!id) {
+            return;
+          }
+          removeIssue(id);
         },
       }}
       cellEditable={{
