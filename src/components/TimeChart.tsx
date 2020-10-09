@@ -2,11 +2,9 @@ import numeral from "numeral";
 import {
   ComposedChart,
   Line,
-  Area,
   Bar,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   Legend,
   ResponsiveContainer,
@@ -23,6 +21,11 @@ interface ChartDataPoint {
   [nameValue: string]: number;
 }
 
+interface CumulativePoint {
+  date: number;
+  amount: number;
+}
+
 class ChartData {
   issues: Issue[];
 
@@ -34,6 +37,35 @@ class ChartData {
     return groupBy(this.issues, (issue) => {
       return startOfMonth(issue.requiredInDate as Date).getTime();
     });
+  }
+
+  get totalCost(): number {
+    return last(this.cumulativeCostPoints)?.amount ?? 0;
+  }
+
+  get cumulativeCostPoints(): CumulativePoint[] {
+    const sortedIssues = sortBy(this.issues, "requiredInDate");
+    let cumulative = 0;
+    const zeroDate = startOfMonth(sortedIssues[0].requiredInDate);
+
+    const points: { [date: number]: CumulativePoint } = {
+      [zeroDate.getTime()]: {
+        date: zeroDate.getTime(),
+        amount: 0,
+      },
+    };
+
+    for (const issue of sortedIssues) {
+      cumulative = cumulative + issue.buyerCost;
+      const time = (issue.requiredInDate as Date).getTime();
+
+      points[time] = {
+        date: time,
+        amount: cumulative,
+      };
+    }
+
+    return Object.values(points);
   }
 
   get points(): ChartDataPoint[] {
@@ -83,27 +115,32 @@ export function TimeChart() {
 
   return (
     <Paper>
-      <ResponsiveContainer height={500} width="100%">
+      <ResponsiveContainer height={800} width="100%">
         <ComposedChart data={chartData.points}>
-          <CartesianGrid stroke="#f5f5f5" />
           <XAxis
             dataKey={(point) => point.date}
             ticks={chartData.ticks}
             type="number"
             domain={["auto", "auto"]}
             tickFormatter={(tick: number) => {
-              return format(tick, "yyyy-MMM");
+              return format(tick, "MMM yy");
             }}
           />
-          <YAxis name="amount" allowDuplicatedCategory={false} />
+          <YAxis
+            name="amount"
+            allowDuplicatedCategory={false}
+            domain={[0, chartData.totalCost]}
+            tickFormatter={(tick) => {
+              return numeral(tick).format("$0,0");
+            }}
+          />
           <Tooltip
             formatter={(amount) => {
               return numeral(amount).format("$0,0");
             }}
-            labelFormatter={(date) => format(new Date(date), "yyyy-MMM")}
+            labelFormatter={(date) => format(new Date(date), "MMM d, yyyy")}
           />
-          <Legend />
-          <Area type="monotone" dataKey="amt" fill="#8884d8" stroke="#8884d8" />
+          <Legend layout="vertical" />
           {issues.map((issue, index) => (
             <Bar
               key={issue.id}
@@ -114,10 +151,16 @@ export function TimeChart() {
               barSize={60}
               stackId={"a"}
               fill={getColor(index)}
-            />
+            ></Bar>
           ))}
-          <Line type="monotone" dataKey="uv" stroke="#ff7300" />
-          {/* <Scatter dataKey="cnt" fill="red" /> */}
+          <Line
+            type="monotone"
+            data={chartData.cumulativeCostPoints}
+            dataKey="amount"
+            stroke="#ff7300"
+            name="Cumulative Cost"
+            dot={false}
+          />
         </ComposedChart>
       </ResponsiveContainer>
     </Paper>

@@ -2,15 +2,15 @@ import { parseDate } from "chrono-node";
 import { BaseModelInterface } from "./BaseModel";
 
 export interface IssueData {
-  createdAt?: string;
+  createdAt: string;
   name: string;
-  cost?: number;
-  requiredIn?: string;
-  homeId?: string;
-  sellerPercent?: number;
+  cost: number;
+  requiredIn: string;
+  homeId: string;
+  sellerPercent: number;
 }
 
-export const EmptyIssue: IssueData = {
+export const EmptyIssue = {
   cost: 0,
   sellerPercent: 0,
   name: "",
@@ -25,31 +25,27 @@ export class Issue implements BaseModelInterface {
     this.id = id;
   }
 
-  get cost() {
-    return this.data.cost || 0;
+  get cost(): number {
+    return this.data.cost;
   }
 
-  get name() {
+  get name(): string {
     return this.data.name;
   }
 
-  get buyerCost() {
+  get buyerCost(): number {
     return this.cost * (1 - this.sellerPercent);
   }
 
-  get sellerPercent() {
-    return this.data.sellerPercent || 0;
+  get sellerPercent(): number {
+    return this.data.sellerPercent;
   }
 
-  get requiredInDate() {
-    if (!this.data.requiredIn) {
-      return null;
-    }
-
+  get requiredInDate(): Date {
     return parseDate(this.data.requiredIn, new Date(), { forwardDate: true });
   }
 
-  get requiredIn() {
+  get requiredIn(): string {
     return this.data.requiredIn;
   }
 }

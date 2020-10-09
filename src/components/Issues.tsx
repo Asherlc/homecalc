@@ -47,7 +47,10 @@ export const requiredAndDeletableField = (fieldName: string) =>
 
 export const database = firebase.firestore();
 
-export function updateIssue(id: string, values: IssueData): Promise<void> {
+export function updateIssue(
+  id: string,
+  values: Partial<IssueData>
+): Promise<void> {
   return updateAttribute(Collections.Issues, id, values);
 }
 
@@ -92,7 +95,7 @@ export function Issues() {
             ...EmptyIssue,
             homeId: home.id,
             createdAt: new Date().toISOString(),
-            ...(newData as IssueData),
+            ...(newData as any),
           });
         },
         onRowDelete: async (oldData) => {
