@@ -17,23 +17,19 @@ export default class Money implements BaseModelInterface {
     this.id = id;
   }
 
-  get amount() {
+  get amount(): number {
     return this.data.amount;
   }
 
-  get name() {
+  get name(): string {
     return this.data.name;
   }
 
-  get availableInDate() {
-    if (!this.data.availableIn) {
-      return null;
-    }
-
+  get availableInDate(): Date {
     return parseDate(this.data.availableIn, new Date(), { forwardDate: true });
   }
 
-  get availableIn() {
+  get availableIn(): string {
     return this.data.availableIn;
   }
 }

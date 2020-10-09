@@ -10,7 +10,12 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-import { eachMonthOfInterval, format, startOfMonth } from "date-fns";
+import {
+  eachMonthOfInterval,
+  endOfMonth,
+  format,
+  startOfMonth,
+} from "date-fns";
 import { colors, Paper, CircularProgress } from "@material-ui/core";
 import { useIssues } from "../hooks/useIssues";
 import { groupBy, last, sortBy } from "lodash";
@@ -59,6 +64,7 @@ class ChartData {
     const sortedItems = sortBy(this.items, "date");
     let cumulative = 0;
     const zeroDate = startOfMonth(sortedItems[0].date);
+    const endDate = endOfMonth((last(sortedItems) as Item).date);
 
     const points: { [date: number]: CumulativePoint } = {
       [zeroDate.getTime()]: {
@@ -76,6 +82,11 @@ class ChartData {
         amount: cumulative,
       };
     }
+
+    points[endDate.getTime()] = {
+      date: endDate.getTime(),
+      amount: cumulative,
+    };
 
     return Object.values(points);
   }
@@ -148,7 +159,7 @@ export function TimeChart() {
           <YAxis
             name="amount"
             allowDuplicatedCategory={false}
-            domain={[0, costData.totalCost]}
+            domain={[0, Math.round(costData.totalCost / 1000) * 1000]}
             tickFormatter={(tick) => {
               return numeral(tick).format("$0,0");
             }}
