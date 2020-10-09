@@ -14,11 +14,16 @@ import { eachMonthOfInterval, format, startOfMonth } from "date-fns";
 import { colors, Paper, CircularProgress } from "@material-ui/core";
 import { useIssues } from "../hooks/useIssues";
 import { groupBy, last, sortBy } from "lodash";
-import { Issue } from "../models/Issue";
 
 interface ChartDataPoint {
   date: number;
   [nameValue: string]: number;
+}
+
+interface Item {
+  date: Date;
+  amount: number;
+  name: string;
 }
 
 interface CumulativePoint {
@@ -26,27 +31,34 @@ interface CumulativePoint {
   amount: number;
 }
 
-class ChartData {
-  issues: Issue[];
+enum Namespaces {
+  Cost = "cost",
+  Money = "money",
+}
 
-  constructor(issues: Issue[]) {
-    this.issues = issues;
+class ChartData {
+  items: Item[];
+  namespace: Namespaces;
+
+  constructor(namespace: Namespaces, items: Item[]) {
+    this.items = items;
+    this.namespace = namespace;
   }
 
-  private get issuesByMonth() {
-    return groupBy(this.issues, (issue) => {
-      return startOfMonth(issue.requiredInDate as Date).getTime();
+  private get itemsByMonth() {
+    return groupBy(this.items, (item) => {
+      return startOfMonth(item.date).getTime();
     });
   }
 
   get totalCost(): number {
-    return last(this.cumulativeCostPoints)?.amount ?? 0;
+    return last(this.cumulativePoints)?.amount ?? 0;
   }
 
-  get cumulativeCostPoints(): CumulativePoint[] {
-    const sortedIssues = sortBy(this.issues, "requiredInDate");
+  get cumulativePoints(): CumulativePoint[] {
+    const sortedItems = sortBy(this.items, "date");
     let cumulative = 0;
-    const zeroDate = startOfMonth(sortedIssues[0].requiredInDate);
+    const zeroDate = startOfMonth(sortedItems[0].date);
 
     const points: { [date: number]: CumulativePoint } = {
       [zeroDate.getTime()]: {
@@ -55,9 +67,9 @@ class ChartData {
       },
     };
 
-    for (const issue of sortedIssues) {
-      cumulative = cumulative + issue.buyerCost;
-      const time = (issue.requiredInDate as Date).getTime();
+    for (const item of sortedItems) {
+      cumulative = cumulative + item.amount;
+      const time = item.date.getTime();
 
       points[time] = {
         date: time,
@@ -69,14 +81,12 @@ class ChartData {
   }
 
   get points(): ChartDataPoint[] {
-    const issuesByMonth = this.issuesByMonth;
-
-    return Object.entries(issuesByMonth).map(([month, issues]) => {
+    return Object.entries(this.itemsByMonth).map(([month, items]) => {
       const monthDate = new Date(parseInt(month));
 
-      return issues.reduce(
-        (point, issue) => {
-          return { ...point, [`cost:${issue.name}`]: issue.buyerCost };
+      return items.reduce(
+        (point, item) => {
+          return { ...point, [`${this.namespace}:${item.name}`]: item.amount };
         },
         {
           date: monthDate.getTime(),
@@ -111,15 +121,24 @@ export function TimeChart() {
     return <CircularProgress />;
   }
 
-  const chartData = new ChartData(issues);
+  const costData = new ChartData(
+    Namespaces.Cost,
+    issues.map((issue) => {
+      return {
+        name: issue.name,
+        amount: issue.buyerCost,
+        date: issue.requiredInDate,
+      };
+    })
+  );
 
   return (
     <Paper>
       <ResponsiveContainer height={800} width="100%">
-        <ComposedChart data={chartData.points}>
+        <ComposedChart data={costData.points}>
           <XAxis
             dataKey={(point) => point.date}
-            ticks={chartData.ticks}
+            ticks={costData.ticks}
             type="number"
             domain={["auto", "auto"]}
             tickFormatter={(tick: number) => {
@@ -129,7 +148,7 @@ export function TimeChart() {
           <YAxis
             name="amount"
             allowDuplicatedCategory={false}
-            domain={[0, chartData.totalCost]}
+            domain={[0, costData.totalCost]}
             tickFormatter={(tick) => {
               return numeral(tick).format("$0,0");
             }}
@@ -146,7 +165,7 @@ export function TimeChart() {
               key={issue.id}
               name={issue.name}
               dataKey={(point) => {
-                return point[`cost:${issue.name}`] ?? null;
+                return point[`${Namespaces.Cost}:${issue.name}`] ?? null;
               }}
               barSize={60}
               stackId={"a"}
@@ -155,7 +174,7 @@ export function TimeChart() {
           ))}
           <Line
             type="monotone"
-            data={chartData.cumulativeCostPoints}
+            data={costData.cumulativePoints}
             dataKey="amount"
             stroke="#ff7300"
             name="Cumulative Cost"
