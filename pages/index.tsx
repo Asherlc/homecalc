@@ -4,6 +4,7 @@ import { Card, CardContent } from "@material-ui/core";
 import { HomeSelector } from "../src/components/HomeSelector";
 import { useRouter } from "next/router";
 import { Collections } from "../src/database";
+import { Login, useAuth } from "../src/components/Login";
 
 function HomeCreator() {
   const router = useRouter();
@@ -21,14 +22,22 @@ function HomeCreator() {
 }
 
 export default function Index() {
+  const { user } = useAuth();
+
   return (
     <>
-      <HomeSelector />
-      <Card>
-        <CardContent>
-          <HomeCreator />
-        </CardContent>
-      </Card>
+      {user ? (
+        <>
+          <HomeSelector />
+          <Card>
+            <CardContent>
+              <HomeCreator />
+            </CardContent>
+          </Card>
+        </>
+      ) : (
+        <Login />
+      )}
     </>
   );
 }
