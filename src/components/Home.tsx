@@ -66,12 +66,9 @@ function Basics() {
           placeholder="$800,000"
           value={currentHome.data()?.askingPrice}
           onChange={(event) => {
-            currentHome.ref.set(
-              {
-                baseCost: parseInt(event.target.value),
-              },
-              { merge: true }
-            );
+            currentHome.ref.update({
+              baseCost: parseInt(event.target.value),
+            });
           }}
         />
       </Grid>
@@ -95,7 +92,7 @@ function AddressEditor() {
       }}
       autosave={true}
       onSubmit={(values) => {
-        return currentHome.ref.set(values, { merge: true });
+        return currentHome.ref.update(values);
       }}
     />
   );

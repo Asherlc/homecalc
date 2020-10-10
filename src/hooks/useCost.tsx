@@ -65,15 +65,13 @@ export function useCityTransferTaxPercent(): number | undefined {
   const home = useCurrentHome();
   const { data: cityTransferTaxPercents } = useCityTransferTaxPercents();
 
-  return useMemo(() => {
-    if (!home || !cityTransferTaxPercents) {
-      return undefined;
-    }
+  if (!home || !cityTransferTaxPercents) {
+    return undefined;
+  }
 
-    return cityTransferTaxPercents.find(({ city }) => {
-      return city === home.data()?.city;
-    })?.rate as number;
-  }, [home, cityTransferTaxPercents]);
+  return cityTransferTaxPercents.find(({ city }) => {
+    return city === home.data()?.city;
+  })?.rate as number;
 }
 
 export function useCountyPropertyTaxPercent(): number | undefined {
