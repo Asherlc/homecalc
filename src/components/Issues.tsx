@@ -64,7 +64,6 @@ export const icons: Icons = {
 
 export function Issues() {
   const { issues, collection } = useIssues();
-  console.log(issues, collection);
   const home = useCurrentHome();
 
   if (!issues || !home || !collection) {
