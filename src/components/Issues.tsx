@@ -50,7 +50,6 @@ export function createOnRowAdd(
   return async function onRowAdd<
     RowData extends firebase.firestore.DocumentSnapshot<any>
   >(newData: RowData): Promise<void> {
-    console.log(newData);
     await collection.add({
       createdAt: Date.now(),
       ...newData,
