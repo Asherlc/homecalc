@@ -1,41 +1,42 @@
-import { DependencyList, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import "../firebaseConfig";
 import * as firebase from "firebase/app";
+import { useCustomCompareEffect } from "react-use";
 
 export type FirestoreRecord<T> = {
   id: string;
   data: T;
 };
 
-export function useFirestoreCollectionConverter(
-  getCollection: () =>
-    | firebase.firestore.CollectionReference<firebase.firestore.DocumentData>
-    | firebase.firestore.Query<firebase.firestore.DocumentData>
-    | undefined,
-  Model: any,
-  deps: DependencyList | undefined
-): any[] | undefined {
-  const [snapshot, setSnapshot] = useState<
-    | firebase.firestore.QuerySnapshot<firebase.firestore.DocumentData>
-    | undefined
-  >();
+type Snapshot =
+  | firebase.firestore.QuerySnapshot<firebase.firestore.DocumentData>
+  | firebase.firestore.DocumentSnapshot<firebase.firestore.DocumentData>;
 
-  useEffect(() => {
-    const collection = getCollection();
+interface Snapshottable {
+  onSnapshot(onNext: (snapshot: Snapshot) => void): () => void;
+  isEqual: (arg: any) => boolean;
+}
 
-    return collection?.onSnapshot((snapshot) => {
-      setSnapshot(snapshot);
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps);
+export function useFirestoreSnapshot<T extends Snapshot>(
+  ref: Snapshottable | undefined
+): T | undefined {
+  const [snapshot, setSnapshot] = useState<T | undefined>();
 
-  if (snapshot) {
-    const models: typeof Model[] = [];
+  useCustomCompareEffect(
+    () => {
+      return ref?.onSnapshot((snapshot) => {
+        setSnapshot((snapshot as unknown) as T);
+      });
+    },
+    [ref],
+    ([prevRef], [nextRef]) => {
+      if (prevRef === nextRef) {
+        return true;
+      }
 
-    snapshot.forEach((doc) => {
-      models.push(new Model(doc.id, doc.data()));
-    });
+      return nextRef ? prevRef?.isEqual(nextRef) ?? false : false;
+    }
+  );
 
-    return models;
-  }
+  return snapshot;
 }

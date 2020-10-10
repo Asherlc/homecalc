@@ -126,19 +126,23 @@ function getColor(index: number): string {
 }
 
 export function TimeChart() {
-  const { issues } = useIssues();
+  const issues = useIssues();
 
   if (!issues) {
     return <CircularProgress />;
   }
 
+  if (issues.docs.length === 0) {
+    return null;
+  }
+
   const costData = new ChartData(
     Namespaces.Cost,
-    issues.map((issue) => {
+    issues.docs.map((issue) => {
       return {
-        name: issue.name,
-        amount: issue.buyerCost,
-        date: issue.requiredInDate,
+        name: issue.data().name,
+        amount: issue.data().buyerCost,
+        date: issue.data().requiredInDate,
       };
     })
   );
@@ -171,12 +175,12 @@ export function TimeChart() {
             labelFormatter={(date) => format(new Date(date), "MMM d, yyyy")}
           />
           <Legend layout="vertical" />
-          {issues.map((issue, index) => (
+          {issues.docs.map((issue, index) => (
             <Bar
               key={issue.id}
-              name={issue.name}
+              name={issue.data().name}
               dataKey={(point) => {
-                return point[`${Namespaces.Cost}:${issue.name}`] ?? null;
+                return point[`${Namespaces.Cost}:${issue.data().name}`] ?? null;
               }}
               barSize={60}
               stackId={"a"}

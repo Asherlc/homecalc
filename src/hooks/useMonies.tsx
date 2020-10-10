@@ -1,23 +1,40 @@
-import { useAuth } from "../components/Login";
+import * as firebase from "firebase/app";
+import { useRouter } from "next/router";
+import { useMemo } from "react";
 import { Collections, database } from "../database";
-import Money from "../models/Money";
-import { useFirestoreCollectionConverter } from "./firebase";
+import Money, { firestoreMoneyConverter } from "../models/Money";
+import { useFirestoreSnapshot } from "./firebase";
 
-export default function useMonies(): Money[] | undefined {
-  const { user } = useAuth();
+export default function useMonies():
+  | firebase.firestore.QuerySnapshot<Money>
+  | undefined {
+  const collection = useMoniesCollection();
 
-  return useFirestoreCollectionConverter(
-    () => {
-      if (!user) {
-        return;
-      }
+  const queryRef = useMemo(
+    () =>
+      collection?.orderBy("createdAt").withConverter(firestoreMoneyConverter),
+    [collection]
+  );
 
-      return database
-        .collection(Collections.Monies)
-        .where("uid", "==", user.uid)
-        .orderBy("createdAt");
-    },
-    Money,
-    [user]
+  return useFirestoreSnapshot<firebase.firestore.QuerySnapshot<Money>>(
+    queryRef
+  );
+}
+
+export function useMoniesCollection():
+  | firebase.firestore.CollectionReference<firebase.firestore.DocumentData>
+  | undefined {
+  const {
+    query: { workspaceId },
+  } = useRouter();
+
+  return useMemo(
+    () =>
+      workspaceId
+        ? database.collection(
+            `${Collections.Workspaces}/${workspaceId}/${Collections.Monies}`
+          )
+        : undefined,
+    [workspaceId]
   );
 }

@@ -17,15 +17,8 @@ import {
 } from "@material-ui/core";
 import AddressForm from "./AddressForm";
 import { useCost } from "../hooks/useCost";
-import { HomeData } from "../types/HomeData";
-import { updateAttribute } from "../firebaseUtils";
 import { Monies } from "./Monies";
-import { Collections } from "../database";
 import { PriceField } from "./inputs";
-
-function updateHome(id: string, values: Partial<HomeData>) {
-  return updateAttribute(Collections.Homes, id, values);
-}
 
 function SummaryItem({ name, cost }: { name: string; cost: string }) {
   return (
@@ -71,11 +64,14 @@ function Basics() {
         <PriceField
           label="Asking Price"
           placeholder="$800,000"
-          value={currentHome.askingPrice}
+          value={currentHome.data()?.askingPrice}
           onChange={(event) => {
-            updateHome(currentHome.id, {
-              baseCost: parseInt(event.target.value),
-            });
+            currentHome.ref.set(
+              {
+                baseCost: parseInt(event.target.value),
+              },
+              { merge: true }
+            );
           }}
         />
       </Grid>
@@ -93,13 +89,13 @@ function AddressEditor() {
   return (
     <AddressForm
       initialValues={{
-        address: currentHome.address,
-        city: currentHome.city,
-        county: currentHome.county,
+        address: currentHome.data()?.address,
+        city: currentHome.data()?.city,
+        county: currentHome.data()?.county,
       }}
       autosave={true}
       onSubmit={(values) => {
-        return updateAttribute(Collections.Homes, currentHome.id, values);
+        return currentHome.ref.set(values, { merge: true });
       }}
     />
   );

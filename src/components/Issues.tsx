@@ -1,7 +1,6 @@
-import numeral from "numeral";
-import MaterialTable, { Icons } from "material-table";
 import * as firebase from "firebase/app";
-import { EmptyIssue, Issue, IssueData } from "../models/Issue";
+import numeral from "numeral";
+import MaterialTable, { Column, Icons } from "material-table";
 import {
   Remove,
   Clear,
@@ -10,13 +9,11 @@ import {
   DeleteOutline,
   Edit,
 } from "@material-ui/icons";
-import { useIssues } from "../hooks/useIssues";
+import { useIssues, useIssuesCollection } from "../hooks/useIssues";
 import { forwardRef } from "react";
 import { isEmpty, isNumber } from "lodash";
 import { useCurrentHome } from "../hooks/useCurrentHome";
 import { SliderWithNumberInput } from "./SliderWithNumberInput";
-import { Unsaved } from "../types/RecordData";
-import { WithoutHome } from "../types/UserScoped";
 
 export function deletableField(validator: (rowData: any) => any) {
   return (rowData: unknown) => {
@@ -45,7 +42,40 @@ export function requiredField<T>(fieldName: keyof T) {
 export const requiredAndDeletableField = (fieldName: string) =>
   deletableField(requiredField(fieldName));
 
-export const database = firebase.firestore();
+export function createOnRowAdd(
+  collection: firebase.firestore.CollectionReference<
+    firebase.firestore.DocumentData
+  >
+) {
+  return async function onRowAdd<
+    RowData extends firebase.firestore.DocumentSnapshot<any>
+  >(newData: RowData): Promise<void> {
+    console.log(newData);
+    await collection.add({
+      createdAt: Date.now(),
+      ...newData,
+    });
+  };
+}
+
+export function onRowDelete<
+  RowData extends firebase.firestore.DocumentSnapshot<any>
+>(oldData: RowData): Promise<void> {
+  return oldData.ref.delete();
+}
+
+export async function onCellEditApproved<
+  RowData extends firebase.firestore.DocumentSnapshot<any>
+>(
+  newValue: unknown,
+  oldValue: unknown,
+  rowData: RowData,
+  columnDef: Column<RowData>
+): Promise<void> {
+  return rowData.ref.update({
+    [columnDef.field as string]: newValue,
+  });
+}
 
 export const icons: Icons = {
   // eslint-disable-next-line react/display-name
@@ -63,7 +93,8 @@ export const icons: Icons = {
 };
 
 export function Issues() {
-  const { issues, collection } = useIssues();
+  const issues = useIssues();
+  const collection = useIssuesCollection();
   const home = useCurrentHome();
 
   if (!issues || !home || !collection) {
@@ -71,7 +102,7 @@ export function Issues() {
   }
 
   return (
-    <MaterialTable<Issue>
+    <MaterialTable
       title="Issues"
       options={{
         search: false,
@@ -79,32 +110,17 @@ export function Issues() {
       }}
       icons={icons}
       editable={{
-        onRowAdd: (newData: WithoutHome<Unsaved<IssueData>>) => {
-          return collection.add({
-            createdAt: Date.now(),
-            ...EmptyIssue,
-            homeId: home.id,
-            ...(newData as any),
-          });
-        },
-        onRowDelete: async ({ id }: Issue) => {
-          if (!id) {
-            return;
-          }
-          collection.doc(id).delete();
-        },
+        onRowAdd: createOnRowAdd(collection),
+        onRowDelete,
       }}
       cellEditable={{
-        onCellEditApproved: async (newValue, oldValue, rowData, columnDef) => {
-          collection
-            .doc(rowData.id)
-            .set({ [columnDef.field as string]: newValue }, { merge: true });
-        },
+        onCellEditApproved,
       }}
       columns={[
         {
           title: "Name",
           field: "name",
+          render: (rowData) => rowData.data().name,
           validate: requiredAndDeletableField("name"),
         },
         {
@@ -113,12 +129,13 @@ export function Issues() {
           field: "cost",
           validate: requiredAndDeletableField("cost"),
           render: (rowData) => {
-            return numeral(rowData.cost).format("$0,0");
+            return numeral(rowData.data().cost).format("$0,0");
           },
         },
         {
           title: "Required In",
           field: "requiredIn",
+          render: (rowData) => rowData.data().requiredIn,
           validate: requiredAndDeletableField("requiredIn"),
         },
         {
@@ -129,22 +146,20 @@ export function Issues() {
           render: (rowData) => {
             return (
               <SliderWithNumberInput
-                value={Math.round(rowData.sellerPercent * 100)}
+                value={Math.round(rowData.data().sellerPercent * 100)}
                 onChangeCommitted={(val) => {
                   if (typeof val === "undefined") {
                     return;
                   }
 
-                  collection
-                    .doc(rowData.id)
-                    .set({ sellerPercent: val / 100 }, { merge: true });
+                  rowData.ref.update({ sellerPercent: val / 100 });
                 }}
               />
             );
           },
         },
       ]}
-      data={issues}
+      data={issues.docs}
     />
   );
 }

@@ -71,10 +71,9 @@ export function useCityTransferTaxPercent(): number | undefined {
     }
 
     return cityTransferTaxPercents.find(({ city }) => {
-      return city === home.city;
+      return city === home.data()?.city;
     })?.rate as number;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(home), JSON.stringify(cityTransferTaxPercents)]);
+  }, [home, cityTransferTaxPercents]);
 }
 
 export function useCountyPropertyTaxPercent(): number | undefined {
@@ -87,10 +86,9 @@ export function useCountyPropertyTaxPercent(): number | undefined {
     }
 
     return countyPropertyTaxPercents.find(({ county }) => {
-      return county === home.county;
+      return county === home.data()?.county;
     })?.rate as number;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(home), JSON.stringify(countyPropertyTaxPercents)]);
+  }, [countyPropertyTaxPercents, home]);
 }
 
 export function useCostGenerator(): (baseCost: number) => Cost | undefined {
@@ -121,5 +119,5 @@ export function useCost(): Cost | undefined {
     return undefined;
   }
 
-  return costGenerator(home.askingPrice);
+  return costGenerator(home.data()?.askingPrice);
 }

@@ -1,3 +1,4 @@
+import * as firebase from "firebase/app";
 import { parseDate } from "chrono-node";
 import RecordData from "../types/RecordData";
 import { BaseModelInterface } from "./BaseModel";
@@ -50,3 +51,17 @@ export class Issue implements BaseModelInterface {
     return this.data.requiredIn;
   }
 }
+
+export const firestoreIssueConverter: firebase.firestore.FirestoreDataConverter<Issue> = {
+  toFirestore() {
+    return {};
+  },
+  fromFirestore(
+    snapshot: firebase.firestore.QueryDocumentSnapshot,
+    options: firebase.firestore.SnapshotOptions
+  ): Issue {
+    const data = snapshot.data(options)!;
+
+    return new Issue(snapshot.id, data as IssueData);
+  },
+};

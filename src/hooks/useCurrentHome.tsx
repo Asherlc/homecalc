@@ -1,23 +1,34 @@
 import * as firebase from "firebase/app";
-import { Home } from "../models/Home";
 import { useRouter } from "next/router";
-import { useHomes } from "./useHomes";
-import { useMemo } from "react";
 import { Collections, database } from "../database";
+import { useFirestoreSnapshot } from "./firebase";
+import { useMemo } from "react";
+import { firestoreHomeConverter } from "../models/Home";
 
-export function useCurrentHome(): Home | undefined {
-  const homes = useHomes();
-  const router = useRouter();
-  const homeId = router.query.id;
+export function useCurrentHome():
+  | firebase.firestore.DocumentSnapshot<firebase.firestore.DocumentData>
+  | undefined {
+  const {
+    query: { workspaceId, homeId },
+  } = useRouter();
 
-  return useMemo(() => {
-    if (homes) {
-      return homes.find((home) => {
-        return home.id === homeId;
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(homes), homeId]);
+  const ref = useMemo(
+    () =>
+      homeId
+        ? database
+            .collection(
+              `${Collections.Workspaces}/${workspaceId}/${Collections.Homes}`
+            )
+            .doc(homeId as string)
+        : undefined,
+    [homeId, workspaceId]
+  );
+
+  const snapshot = useFirestoreSnapshot<firebase.firestore.DocumentSnapshot>(
+    ref?.withConverter(firestoreHomeConverter)
+  );
+
+  return snapshot;
 }
 
 export function useCurrentHomeCollection(
@@ -25,13 +36,17 @@ export function useCurrentHomeCollection(
 ):
   | firebase.firestore.CollectionReference<firebase.firestore.DocumentData>
   | undefined {
-  const currentHome = useCurrentHome();
+  const {
+    query: { workspaceId, homeId },
+  } = useRouter();
 
-  if (!currentHome) {
-    return;
-  }
+  return useMemo(() => {
+    if (!workspaceId || !homeId) {
+      return undefined;
+    }
 
-  return database.collection(
-    `${Collections.Homes}/${currentHome.id}/${collectionName}`
-  );
+    return database.collection(
+      `${Collections.Workspaces}/${workspaceId}/${Collections.Homes}/${homeId}/${collectionName}`
+    );
+  }, [collectionName, homeId, workspaceId]);
 }

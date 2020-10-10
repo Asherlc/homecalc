@@ -1,22 +1,25 @@
-import { useFirestoreCollectionConverter } from "./firebase";
-import { Home } from "../models/Home";
+import * as firebase from "firebase/app";
+import { Home, firestoreHomeConverter } from "../models/Home";
 import { Collections, database } from "../database";
-import { useAuth } from "../components/Login";
+import { useRouter } from "next/router";
+import { useFirestoreSnapshot } from "./firebase";
 
 export function useHomes(): Home[] | undefined {
-  const { user } = useAuth();
+  const {
+    query: { workspaceId },
+  } = useRouter();
 
-  return useFirestoreCollectionConverter(
-    () => {
-      if (!user) {
-        return;
-      }
+  const ref = workspaceId
+    ? database
+        .collection(
+          `${Collections.Workspaces}/${workspaceId}/${Collections.Homes}`
+        )
+        .withConverter(firestoreHomeConverter)
+    : undefined;
 
-      return database
-        .collection(Collections.Homes)
-        .where("uid", "==", user.uid);
-    },
-    Home,
-    [user]
-  ) as Home[] | undefined;
+  const snapshot = useFirestoreSnapshot<firebase.firestore.QuerySnapshot<Home>>(
+    ref
+  );
+
+  return snapshot?.docs.map((doc) => doc.data());
 }

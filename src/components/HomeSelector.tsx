@@ -24,7 +24,9 @@ export function HomeSelector() {
         value={currentHome?.id || ""}
         displayEmpty
         onChange={(event) => {
-          router.push(`/homes/${event.target.value}`);
+          router.push(
+            `workspaces/${router.query.workspaceId}/homes/${event.target.value}`
+          );
         }}
       >
         <MenuItem value="" disabled>

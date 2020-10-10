@@ -88,7 +88,7 @@ function Offerable({ offerableAmount }: { offerableAmount: number }) {
 }
 
 function useMaximumOfferable(): number | undefined {
-  const { issues } = useIssues();
+  const issues = useIssues();
   const monies = useMonies();
   const cityTransferTaxPercent = useCityTransferTaxPercent();
 
@@ -98,12 +98,15 @@ function useMaximumOfferable(): number | undefined {
     }
 
     return getMaximumOfferable({
-      immediateCosts: sumImmediateIssues(issues),
-      immediateMonies: sumImmediateMonies(monies),
+      immediateCosts: sumImmediateIssues(
+        issues.docs.map((issue) => issue.data())
+      ),
+      immediateMonies: sumImmediateMonies(
+        monies.docs.map((money) => money.data())
+      ),
       percentageCosts: cityTransferTaxPercent,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(issues), JSON.stringify(monies), cityTransferTaxPercent]);
+  }, [issues, monies, cityTransferTaxPercent]);
 }
 
 function OfferSlider({
@@ -173,7 +176,7 @@ function Formula({
 
 export default function OfferCalculator() {
   const [offer, setOffer] = useState<number>();
-  const { issues } = useIssues();
+  const issues = useIssues();
   const monies = useMonies();
   const cityTransferTaxPercent = useCityTransferTaxPercent();
   const maximumOfferable = useMaximumOfferable();
@@ -182,19 +185,22 @@ export default function OfferCalculator() {
     if (!offer) {
       setOffer(maximumOfferable);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [maximumOfferable, offer]);
 
   const money = useMemo(
-    () => (monies ? sumImmediateMonies(monies) : undefined),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [JSON.stringify(monies)]
+    () =>
+      monies
+        ? sumImmediateMonies(monies.docs.map((issue) => issue.data()))
+        : undefined,
+    [monies]
   );
 
   const cost = useMemo(
-    () => (issues ? sumImmediateIssues(issues) : undefined),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [JSON.stringify(issues)]
+    () =>
+      issues
+        ? sumImmediateIssues(issues.docs.map((issue) => issue.data()))
+        : undefined,
+    [issues]
   );
 
   if (

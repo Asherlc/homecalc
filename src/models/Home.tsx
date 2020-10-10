@@ -1,3 +1,4 @@
+import * as firebase from "firebase/app";
 import { HomeData } from "../types/HomeData";
 import { BaseModelInterface } from "./BaseModel";
 
@@ -32,8 +33,18 @@ export class Home implements BaseModelInterface {
   get city(): string {
     return this.data.city;
   }
-
-  get uid(): string {
-    return this.data.uid;
-  }
 }
+
+export const firestoreHomeConverter: firebase.firestore.FirestoreDataConverter<Home> = {
+  toFirestore() {
+    return {};
+  },
+  fromFirestore(
+    snapshot: firebase.firestore.QueryDocumentSnapshot,
+    options: firebase.firestore.SnapshotOptions
+  ): Home {
+    const data = snapshot.data(options)!;
+
+    return new Home(snapshot.id, data as HomeData);
+  },
+};

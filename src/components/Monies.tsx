@@ -1,19 +1,19 @@
 import numeral from "numeral";
 import MaterialTable from "material-table";
-import { insertRecord, removeRecord, updateAttribute } from "../firebaseUtils";
-import useMonies from "../hooks/useMonies";
-import IncomeModel, { MoneyData } from "../models/Money";
-import { icons, requiredAndDeletableField } from "./Issues";
-import { Collections } from "../database";
-import { useAuth } from "./Login";
-import { Unsaved } from "../types/RecordData";
-import { WithoutUser } from "../types/UserScoped";
+import useMonies, { useMoniesCollection } from "../hooks/useMonies";
+import {
+  icons,
+  requiredAndDeletableField,
+  createOnRowAdd,
+  onRowDelete,
+  onCellEditApproved,
+} from "./Issues";
 
 export function Monies() {
   const monies = useMonies();
-  const { user } = useAuth();
+  const collection = useMoniesCollection();
 
-  if (!monies) {
+  if (!monies || !collection) {
     return null;
   }
 
@@ -26,27 +26,17 @@ export function Monies() {
       }}
       icons={icons}
       editable={{
-        onRowAdd: (newData: WithoutUser<Unsaved<MoneyData>>) => {
-          return insertRecord<MoneyData>(Collections.Monies, {
-            uid: user!.uid,
-            ...newData,
-          });
-        },
-        onRowDelete: async (oldData: IncomeModel) => {
-          removeRecord(Collections.Monies, oldData.id);
-        },
+        onRowAdd: createOnRowAdd(collection),
+        onRowDelete,
       }}
       cellEditable={{
-        onCellEditApproved: async (newValue, oldValue, rowData, columnDef) => {
-          updateAttribute(Collections.Monies, rowData.id, {
-            [columnDef.field as string]: newValue,
-          });
-        },
+        onCellEditApproved,
       }}
       columns={[
         {
           title: "Name",
           field: "name",
+          render: (rowData) => rowData.data().name,
           validate: requiredAndDeletableField("name"),
         },
         {
@@ -55,16 +45,17 @@ export function Monies() {
           field: "amount",
           validate: requiredAndDeletableField("amount"),
           render: function AmountCell(rowData) {
-            return numeral(rowData.amount).format("$0,0");
+            return numeral(rowData.data().amount).format("$0,0");
           },
         },
         {
           title: "Available In",
           field: "availableIn",
+          render: (rowData) => rowData.data().availableIn,
           validate: requiredAndDeletableField("availableIn"),
         },
       ]}
-      data={monies}
+      data={monies.docs}
     />
   );
 }

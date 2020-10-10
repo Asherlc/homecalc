@@ -8,6 +8,7 @@ import "./firebaseConfig";
 export const database = firebase.firestore();
 
 export enum Collections {
+  Workspaces = "workspaces",
   Issues = "issues",
   Homes = "homes",
   Monies = "incomes",

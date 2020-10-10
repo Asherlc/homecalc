@@ -1,3 +1,4 @@
+import * as firebase from "firebase/app";
 import { parseDate } from "chrono-node";
 import RecordData from "../types/RecordData";
 import UserScoped from "../types/UserScoped";
@@ -39,3 +40,17 @@ export default class Money implements BaseModelInterface {
     return this.data.availableIn;
   }
 }
+
+export const firestoreMoneyConverter: firebase.firestore.FirestoreDataConverter<Money> = {
+  toFirestore() {
+    return {};
+  },
+  fromFirestore(
+    snapshot: firebase.firestore.QueryDocumentSnapshot,
+    options: firebase.firestore.SnapshotOptions
+  ): Money {
+    const data = snapshot.data(options)!;
+
+    return new Money(snapshot.id, data as MoneyData);
+  },
+};
