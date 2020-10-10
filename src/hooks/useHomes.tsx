@@ -17,6 +17,6 @@ export function useHomes(): Home[] | undefined {
         .where("uid", "==", user.uid);
     },
     Home,
-    [user?.uid]
+    [user]
   ) as Home[] | undefined;
 }

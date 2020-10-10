@@ -1,21 +1,24 @@
+import * as firebase from "firebase/app";
 import { useFirestoreCollectionConverter } from "./firebase";
 import { Issue } from "../models/Issue";
-import { useCurrentHome } from "./useCurrentHome";
-import { Collections, database } from "../database";
+import { useCurrentHomeCollection } from "./useCurrentHome";
+import { Collections } from "../database";
 
-export function useIssues(): Issue[] | undefined {
-  const home = useCurrentHome();
+export function useIssues(): {
+  issues?: Issue[];
+  collection?: firebase.firestore.CollectionReference<
+    firebase.firestore.DocumentData
+  >;
+} {
+  const collection = useCurrentHomeCollection(Collections.Issues);
 
-  return useFirestoreCollectionConverter(
+  const issues = useFirestoreCollectionConverter(
     () => {
-      return home?.id
-        ? database
-            .collection(Collections.Issues)
-            .where("homeId", "==", home.id)
-            .orderBy("createdAt")
-        : undefined;
+      return collection ? collection.orderBy("createdAt") : undefined;
     },
     Issue,
-    [home?.id]
+    [!collection]
   );
+
+  return { issues, collection };
 }

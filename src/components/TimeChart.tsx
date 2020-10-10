@@ -126,7 +126,7 @@ function getColor(index: number): string {
 }
 
 export function TimeChart() {
-  const issues = useIssues();
+  const { issues } = useIssues();
 
   if (!issues) {
     return <CircularProgress />;

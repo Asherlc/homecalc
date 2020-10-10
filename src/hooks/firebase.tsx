@@ -29,16 +29,13 @@ export function useFirestoreCollectionConverter(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
-  return useMemo(() => {
-    if (snapshot) {
-      const models: typeof Model[] = [];
+  if (snapshot) {
+    const models: typeof Model[] = [];
 
-      snapshot.forEach((doc) => {
-        models.push(new Model(doc.id, doc.data()));
-      });
+    snapshot.forEach((doc) => {
+      models.push(new Model(doc.id, doc.data()));
+    });
 
-      return models;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [snapshot]);
+    return models;
+  }
 }

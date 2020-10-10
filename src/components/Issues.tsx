@@ -10,11 +10,9 @@ import {
   DeleteOutline,
   Edit,
 } from "@material-ui/icons";
-import { insertRecord, updateAttribute } from "../firebaseUtils";
 import { useIssues } from "../hooks/useIssues";
 import { forwardRef } from "react";
 import { isEmpty, isNumber } from "lodash";
-import { Collections } from "../database";
 import { useCurrentHome } from "../hooks/useCurrentHome";
 import { SliderWithNumberInput } from "./SliderWithNumberInput";
 import { Unsaved } from "../types/RecordData";
@@ -49,17 +47,6 @@ export const requiredAndDeletableField = (fieldName: string) =>
 
 export const database = firebase.firestore();
 
-export function updateIssue(
-  id: string,
-  values: Partial<IssueData>
-): Promise<void> {
-  return updateAttribute(Collections.Issues, id, values);
-}
-
-export function removeIssue(id: string): Promise<void> {
-  return database.collection(Collections.Issues).doc(id).delete();
-}
-
 export const icons: Icons = {
   // eslint-disable-next-line react/display-name
   Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
@@ -76,10 +63,11 @@ export const icons: Icons = {
 };
 
 export function Issues() {
-  const issues = useIssues();
+  const { issues, collection } = useIssues();
+  console.log(issues, collection);
   const home = useCurrentHome();
 
-  if (!issues || !home) {
+  if (!issues || !home || !collection) {
     return null;
   }
 
@@ -93,7 +81,8 @@ export function Issues() {
       icons={icons}
       editable={{
         onRowAdd: (newData: WithoutHome<Unsaved<IssueData>>) => {
-          return insertRecord<IssueData>(Collections.Issues, {
+          return collection.add({
+            createdAt: Date.now(),
             ...EmptyIssue,
             homeId: home.id,
             ...(newData as any),
@@ -103,12 +92,14 @@ export function Issues() {
           if (!id) {
             return;
           }
-          removeIssue(id);
+          collection.doc(id).delete();
         },
       }}
       cellEditable={{
         onCellEditApproved: async (newValue, oldValue, rowData, columnDef) => {
-          updateIssue(rowData.id, { [columnDef.field as string]: newValue });
+          collection
+            .doc(rowData.id)
+            .set({ [columnDef.field as string]: newValue }, { merge: true });
         },
       }}
       columns={[
@@ -145,9 +136,9 @@ export function Issues() {
                     return;
                   }
 
-                  updateIssue(rowData.id, {
-                    sellerPercent: val / 100,
-                  });
+                  collection
+                    .doc(rowData.id)
+                    .set({ sellerPercent: val / 100 }, { merge: true });
                 }}
               />
             );

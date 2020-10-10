@@ -88,7 +88,7 @@ function Offerable({ offerableAmount }: { offerableAmount: number }) {
 }
 
 function useMaximumOfferable(): number | undefined {
-  const issues = useIssues();
+  const { issues } = useIssues();
   const monies = useMonies();
   const cityTransferTaxPercent = useCityTransferTaxPercent();
 
@@ -173,7 +173,7 @@ function Formula({
 
 export default function OfferCalculator() {
   const [offer, setOffer] = useState<number>();
-  const issues = useIssues();
+  const { issues } = useIssues();
   const monies = useMonies();
   const cityTransferTaxPercent = useCityTransferTaxPercent();
   const maximumOfferable = useMaximumOfferable();
