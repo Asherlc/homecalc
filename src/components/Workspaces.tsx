@@ -1,13 +1,11 @@
 import * as firebase from "firebase/app";
+import "firebase/functions";
 import {
   MenuList,
   CircularProgress,
   Grid,
   Card,
   CardContent,
-  TextField,
-  InputAdornment,
-  IconButton,
   Typography,
   Dialog,
   DialogActions,
@@ -17,7 +15,6 @@ import {
   Button,
   MenuItem,
 } from "@material-ui/core";
-import { Add } from "@material-ui/icons";
 import { useMemo, useState } from "react";
 import { Collections, database } from "../database";
 import { useFirestoreSnapshot } from "../hooks/firebase";
@@ -28,6 +25,7 @@ import { Home } from "../models/Home";
 import AddressForm from "./AddressForm";
 import { useRouter } from "next/router";
 import NextLink from "next/link";
+import { TextFieldWithAddButton } from "./inputs";
 
 function FormDialog({ workspace }: { workspace: WorkspaceModel }) {
   const router = useRouter();
@@ -115,6 +113,18 @@ function Workspace({ workspace }: { workspace: WorkspaceModel }) {
           );
         })}
       </MenuList>
+      <TextFieldWithAddButton
+        label="Share with email"
+        type="email"
+        required
+        onSubmit={(val) => {
+          const addUserToWorkspace = firebase
+            .functions()
+            .httpsCallable("addUserToWorkspace");
+
+          addUserToWorkspace({ email: val, workspaceId: workspace.id });
+        }}
+      />
       <FormDialog workspace={workspace} />
     </>
   );
@@ -123,35 +133,21 @@ function Workspace({ workspace }: { workspace: WorkspaceModel }) {
 function WorkspaceForm() {
   const { user } = useAuth();
   const { collection } = useWorkspaces();
-  const [name, setName] = useState<string>();
 
   if (!collection || !user) {
     return <CircularProgress />;
   }
 
   return (
-    <TextField
+    <TextFieldWithAddButton
       required
       label="New Workspace Name"
-      onChange={(event) => {
-        setName(event.target.value);
-      }}
-      InputProps={{
-        endAdornment: (
-          <InputAdornment position="end">
-            <IconButton
-              onClick={() => {
-                collection.add({
-                  createdAt: Date.now(),
-                  name,
-                  uid: user.uid,
-                });
-              }}
-            >
-              <Add />
-            </IconButton>
-          </InputAdornment>
-        ),
+      onSubmit={(val) => {
+        collection.add({
+          createdAt: Date.now(),
+          name: val,
+          owners: [user.email],
+        });
       }}
     />
   );

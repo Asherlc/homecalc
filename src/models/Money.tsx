@@ -1,10 +1,9 @@
 import * as firebase from "firebase/app";
 import { parseDate } from "chrono-node";
 import RecordData from "../types/RecordData";
-import UserScoped from "../types/UserScoped";
 import { BaseModelInterface } from "./BaseModel";
 
-export interface MoneyData extends UserScoped, RecordData {
+export interface MoneyData extends RecordData {
   name: string;
   amount: number;
   availableIn: string;

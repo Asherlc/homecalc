@@ -17,15 +17,15 @@ export default function useWorkSpaces(): {
     []
   );
 
-  const queryRef = useMemo(
-    () =>
-      user
-        ? collection
-            .where("uid", "==", user.uid)
-            .withConverter(firestoreWorkspaceConverter)
-        : undefined,
-    [collection, user]
-  );
+  const queryRef = useMemo(() => {
+    if (!user) {
+      return;
+    }
+
+    return collection
+      .where("owners", "array-contains", user.uid)
+      .withConverter(firestoreWorkspaceConverter);
+  }, [collection, user]);
 
   const snapshot = useFirestoreSnapshot<
     firebase.firestore.QuerySnapshot<Workspace>

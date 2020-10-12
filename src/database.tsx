@@ -3,7 +3,7 @@ import "firebase/firestore";
 
 import "./firebaseConfig";
 
-// firebase.firestore.setLogLevel("debug");
+firebase.firestore.setLogLevel("debug");
 
 export const database = firebase.firestore();
 

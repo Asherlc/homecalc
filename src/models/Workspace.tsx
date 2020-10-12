@@ -1,9 +1,8 @@
 import * as firebase from "firebase/app";
 import RecordData from "../types/RecordData";
-import UserScoped from "../types/UserScoped";
 import { BaseModelInterface } from "./BaseModel";
 
-interface WorkspaceData extends RecordData, UserScoped {
+interface WorkspaceData extends RecordData {
   name: string;
   createdAt: string;
 }

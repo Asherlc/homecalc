@@ -1,6 +1,50 @@
-import { TextField, TextFieldProps } from "@material-ui/core";
+import {
+  InputAdornment,
+  IconButton,
+  TextField,
+  TextFieldProps,
+} from "@material-ui/core";
+import { Add } from "@material-ui/icons";
 import NumberFormat from "react-number-format";
 import { useEffect, useState } from "react";
+
+export function TextFieldWithAddButton({
+  onSubmit,
+  required,
+  label,
+  type,
+}: {
+  type?: string;
+  required?: boolean;
+  label?: string;
+  onSubmit: (val: string | undefined) => void;
+}) {
+  const [val, setVal] = useState<string>();
+
+  return (
+    <TextField
+      required={required}
+      label={label}
+      type={type}
+      onChange={(event) => {
+        setVal(event.target.value);
+      }}
+      InputProps={{
+        endAdornment: (
+          <InputAdornment position="end">
+            <IconButton
+              onClick={() => {
+                onSubmit(val);
+              }}
+            >
+              <Add />
+            </IconButton>
+          </InputAdornment>
+        ),
+      }}
+    />
+  );
+}
 
 interface NumberFormatCustomProps {
   inputRef: (instance: NumberFormat | null) => void;
