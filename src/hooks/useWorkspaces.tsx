@@ -24,7 +24,7 @@ export default function useWorkSpaces(): {
 
     return collection
       .where("owners", "!=", false)
-      .where("owners", "array-contains", user.email)
+      .where("owners", "array-contains", user.email?.toLowerCase())
       .withConverter(firestoreWorkspaceConverter);
   }, [collection, user]);
 

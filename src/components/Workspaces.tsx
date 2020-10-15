@@ -283,7 +283,9 @@ function Workspace({
           required
           onSubmit={(val) => {
             return workspace.ref.update({
-              owners: firebase.firestore.FieldValue.arrayUnion(val),
+              owners: firebase.firestore.FieldValue.arrayUnion(
+                val?.toLowerCase()
+              ),
             });
           }}
         />
