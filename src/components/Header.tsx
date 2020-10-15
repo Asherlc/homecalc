@@ -13,6 +13,7 @@ import {
   ExitToApp as ExitToAppIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
+  Person as PersonIcon,
 } from "@material-ui/icons";
 import {
   IconButton,
@@ -29,6 +30,7 @@ import {
 import classNames from "classnames";
 import { useState } from "react";
 import { useRouter } from "next/router";
+import { useAuth } from "./Login";
 
 const drawerWidth = 240;
 
@@ -96,6 +98,7 @@ export function Header() {
   const theme = useTheme();
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  const { user } = useAuth();
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -143,18 +146,28 @@ export function Header() {
         </div>
         <Divider />
         <List>
-          <ListItem
-            button
-            onClick={async () => {
-              await firebase.auth().signOut();
-              router.push("/");
-            }}
-          >
-            <ListItemIcon>
-              <ExitToAppIcon />
-            </ListItemIcon>
-            <ListItemText>Log Out</ListItemText>
-          </ListItem>
+          {user && (
+            <>
+              <ListItem>
+                <ListItemIcon>
+                  <PersonIcon />
+                </ListItemIcon>
+                <ListItemText>{user.email}</ListItemText>
+              </ListItem>
+              <ListItem
+                button
+                onClick={async () => {
+                  await firebase.auth().signOut();
+                  router.push("/");
+                }}
+              >
+                <ListItemIcon>
+                  <ExitToAppIcon />
+                </ListItemIcon>
+                <ListItemText>Log Out</ListItemText>
+              </ListItem>
+            </>
+          )}
         </List>
       </Drawer>
     </>
