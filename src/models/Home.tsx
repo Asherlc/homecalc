@@ -1,6 +1,5 @@
 import * as firebase from "firebase/app";
 import { HomeData } from "../types/HomeData";
-import { BaseModelInterface } from "./BaseModel";
 
 export const EmptyHome = {
   address: "",
@@ -9,13 +8,11 @@ export const EmptyHome = {
   baseCost: 0,
 };
 
-export class Home implements BaseModelInterface {
-  protected data: HomeData;
-  id: string;
+export class Home {
+  data: HomeData;
 
-  constructor(id: string, data: HomeData) {
+  constructor(data: HomeData) {
     this.data = data;
-    this.id = id;
   }
 
   get askingPrice(): number {
@@ -36,8 +33,8 @@ export class Home implements BaseModelInterface {
 }
 
 export const firestoreHomeConverter: firebase.firestore.FirestoreDataConverter<Home> = {
-  toFirestore() {
-    return {};
+  toFirestore(home: Home) {
+    return home.data;
   },
   fromFirestore(
     snapshot: firebase.firestore.QueryDocumentSnapshot,
@@ -45,6 +42,6 @@ export const firestoreHomeConverter: firebase.firestore.FirestoreDataConverter<H
   ): Home {
     const data = snapshot.data(options)!;
 
-    return new Home(snapshot.id, data as HomeData);
+    return new Home(data as HomeData);
   },
 };

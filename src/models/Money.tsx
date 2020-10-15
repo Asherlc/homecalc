@@ -1,26 +1,18 @@
 import * as firebase from "firebase/app";
 import { parseDate } from "chrono-node";
-import RecordData from "../types/RecordData";
-import { BaseModelInterface } from "./BaseModel";
 
-export interface MoneyData extends RecordData {
+export interface MoneyData {
   name: string;
   amount: number;
   availableIn: string;
-  createdAt: string;
+  createdAt: Date;
 }
 
-export default class Money implements BaseModelInterface {
-  protected data: MoneyData;
-  id: string;
+export default class Money {
+  data: MoneyData;
 
-  constructor(id: string, data: MoneyData) {
+  constructor(data: MoneyData) {
     this.data = data;
-    this.id = id;
-  }
-
-  get uid(): string {
-    return this.data.uid;
   }
 
   get amount(): number {
@@ -41,8 +33,8 @@ export default class Money implements BaseModelInterface {
 }
 
 export const firestoreMoneyConverter: firebase.firestore.FirestoreDataConverter<Money> = {
-  toFirestore() {
-    return {};
+  toFirestore(money: Money) {
+    return money.data;
   },
   fromFirestore(
     snapshot: firebase.firestore.QueryDocumentSnapshot,
@@ -50,6 +42,6 @@ export const firestoreMoneyConverter: firebase.firestore.FirestoreDataConverter<
   ): Money {
     const data = snapshot.data(options)!;
 
-    return new Money(snapshot.id, data as MoneyData);
+    return new Money(data as MoneyData);
   },
 };

@@ -1,29 +1,30 @@
 import * as firebase from "firebase/app";
-import RecordData from "../types/RecordData";
-import { BaseModelInterface } from "./BaseModel";
 
-interface WorkspaceData extends RecordData {
+interface WorkspaceData {
   name: string;
-  createdAt: string;
+  createdAt: Date;
+  owners: string[];
 }
 
-export default class Workspace implements BaseModelInterface {
-  protected data: WorkspaceData;
-  id: string;
+export default class Workspace {
+  data: WorkspaceData;
 
-  constructor(id: string, data: WorkspaceData) {
+  constructor(data: WorkspaceData) {
     this.data = data;
-    this.id = id;
   }
 
   get name(): string {
     return this.data.name;
   }
+
+  get owners(): string[] {
+    return this.data.owners;
+  }
 }
 
 export const firestoreWorkspaceConverter: firebase.firestore.FirestoreDataConverter<Workspace> = {
-  toFirestore() {
-    return {};
+  toFirestore(model: Workspace) {
+    return model.data;
   },
   fromFirestore(
     snapshot: firebase.firestore.QueryDocumentSnapshot,
@@ -31,6 +32,6 @@ export const firestoreWorkspaceConverter: firebase.firestore.FirestoreDataConver
   ): Workspace {
     const data = snapshot.data(options)!;
 
-    return new Workspace(snapshot.id, data as WorkspaceData);
+    return new Workspace(data as WorkspaceData);
   },
 };

@@ -22,27 +22,30 @@ export function TextFieldWithAddButton({
   const [val, setVal] = useState<string>();
 
   return (
-    <TextField
-      required={required}
-      label={label}
-      type={type}
-      onChange={(event) => {
-        setVal(event.target.value);
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSubmit(val);
       }}
-      InputProps={{
-        endAdornment: (
-          <InputAdornment position="end">
-            <IconButton
-              onClick={() => {
-                onSubmit(val);
-              }}
-            >
-              <Add />
-            </IconButton>
-          </InputAdornment>
-        ),
-      }}
-    />
+    >
+      <TextField
+        required={required}
+        label={label}
+        type={type}
+        onChange={(event) => {
+          setVal(event.target.value);
+        }}
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton type="submit">
+                <Add />
+              </IconButton>
+            </InputAdornment>
+          ),
+        }}
+      />
+    </form>
   );
 }
 

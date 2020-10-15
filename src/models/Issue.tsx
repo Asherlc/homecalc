@@ -1,10 +1,8 @@
 import * as firebase from "firebase/app";
 import { parseDate } from "chrono-node";
-import RecordData from "../types/RecordData";
-import { BaseModelInterface } from "./BaseModel";
 
-export interface IssueData extends RecordData {
-  createdAt: string;
+export interface IssueData {
+  createdAt: Date;
   name: string;
   cost: number;
   requiredIn: string;
@@ -18,13 +16,11 @@ export const EmptyIssue = {
   name: "",
 };
 
-export class Issue implements BaseModelInterface {
-  protected data: IssueData;
-  id: string;
+export class Issue {
+  data: IssueData;
 
-  constructor(id: string, data: IssueData) {
+  constructor(data: IssueData) {
     this.data = data;
-    this.id = id;
   }
 
   get cost(): number {
@@ -53,8 +49,8 @@ export class Issue implements BaseModelInterface {
 }
 
 export const firestoreIssueConverter: firebase.firestore.FirestoreDataConverter<Issue> = {
-  toFirestore() {
-    return {};
+  toFirestore(issue: Issue) {
+    return issue.data;
   },
   fromFirestore(
     snapshot: firebase.firestore.QueryDocumentSnapshot,
@@ -62,6 +58,6 @@ export const firestoreIssueConverter: firebase.firestore.FirestoreDataConverter<
   ): Issue {
     const data = snapshot.data(options)!;
 
-    return new Issue(snapshot.id, data as IssueData);
+    return new Issue(data as IssueData);
   },
 };

@@ -6,7 +6,7 @@ import { useFirestoreSnapshot } from "./firebase";
 import { useMemo } from "react";
 
 export default function useWorkSpaces(): {
-  workspaces?: Workspace[];
+  workspaces?: firebase.firestore.QuerySnapshot<Workspace>;
   collection?: firebase.firestore.CollectionReference<
     firebase.firestore.DocumentData
   >;
@@ -23,7 +23,8 @@ export default function useWorkSpaces(): {
     }
 
     return collection
-      .where("owners", "array-contains", user.uid)
+      .where("owners", "!=", false)
+      .where("owners", "array-contains", user.email)
       .withConverter(firestoreWorkspaceConverter);
   }, [collection, user]);
 
@@ -31,5 +32,5 @@ export default function useWorkSpaces(): {
     firebase.firestore.QuerySnapshot<Workspace>
   >(queryRef);
 
-  return { workspaces: snapshot?.docs.map((doc) => doc.data()), collection };
+  return { workspaces: snapshot, collection };
 }

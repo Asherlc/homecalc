@@ -1,8 +1,7 @@
-import RecordData from "./RecordData";
-
-export interface HomeData extends RecordData {
+export interface HomeData {
   baseCost?: number;
   address: string;
   city: string;
   county: string;
+  createdAt: Date;
 }
