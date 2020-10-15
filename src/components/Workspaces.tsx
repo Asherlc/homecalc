@@ -1,13 +1,17 @@
 import * as firebase from "firebase/app";
-import { Delete as DeleteIcon } from "@material-ui/icons";
+import { Delete as DeleteIcon, Home as HomeIcon } from "@material-ui/icons";
 import "firebase/functions";
 import {
   Box,
   IconButton,
   CardActions,
   makeStyles,
-  MenuList,
   CircularProgress,
+  ListItemSecondaryAction,
+  ListItemText,
+  ListItem,
+  ListItemIcon,
+  List,
   Grid,
   Card,
   createStyles,
@@ -18,9 +22,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Link,
   Button,
-  MenuItem,
   Theme,
 } from "@material-ui/core";
 import { ReactNode, useMemo, useState } from "react";
@@ -32,7 +34,7 @@ import { useAuth } from "./Login";
 import { Home } from "../models/Home";
 import AddressForm from "./AddressForm";
 import { useRouter } from "next/router";
-import NextLink from "next/link";
+import NextLink, { LinkProps as NextLinkProps } from "next/link";
 import { TextFieldWithAddButton } from "./inputs";
 import { without } from "lodash";
 
@@ -181,6 +183,21 @@ function Owners({
   );
 }
 
+function WrappableLink({
+  className,
+  children,
+  ...props
+}: NextLinkProps & {
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <NextLink {...props}>
+      <a className={className}>{children}</a>
+    </NextLink>
+  );
+}
+
 function Workspace({
   workspace,
 }: {
@@ -202,22 +219,41 @@ function Workspace({
       <Typography variant="h6" align="center">
         {workspace.data().name}
       </Typography>
-      <Typography variant="subtitle1">Homes</Typography>
-      <MenuList>
+      <List component="nav" aria-label="main mailbox folders">
         {homes.docs.map((home) => {
           return (
-            <NextLink
+            <ListItem
+              button
+              component={WrappableLink}
               key={home.id}
               href={`/workspaces/${workspace.id}/homes/${home.id}`}
-              passHref
             >
-              <MenuItem>
-                <Link>{home.data()?.address}</Link>
-              </MenuItem>
-            </NextLink>
+              <ListItemIcon>
+                <HomeIcon />
+              </ListItemIcon>
+              <ListItemText>{home.data()?.address}</ListItemText>
+              <ListItemSecondaryAction>
+                <DeleteAlertDialog
+                  onConfirm={() => {
+                    return home.ref.delete();
+                  }}
+                  button={({ handleClickOpen }) => {
+                    return (
+                      <IconButton
+                        edge="end"
+                        aria-label="delete"
+                        onClick={handleClickOpen}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    );
+                  }}
+                />
+              </ListItemSecondaryAction>
+            </ListItem>
           );
         })}
-      </MenuList>
+      </List>
       <FormDialog workspace={workspace} />
       <Typography variant="subtitle1">Shared with</Typography>
       <Owners owners={workspace.data().owners} workspace={workspace} />
