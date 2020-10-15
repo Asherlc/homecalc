@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import "../firebaseConfig";
 import * as firebase from "firebase/app";
 import { useCustomCompareEffect } from "react-use";

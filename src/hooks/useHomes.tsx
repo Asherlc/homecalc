@@ -4,7 +4,7 @@ import { Collections, database } from "../database";
 import { useRouter } from "next/router";
 import { useFirestoreSnapshot } from "./firebase";
 
-export function useHomes(): Home[] | undefined {
+export function useHomes(): firebase.firestore.QuerySnapshot<Home> | undefined {
   const {
     query: { workspaceId },
   } = useRouter();
@@ -21,5 +21,5 @@ export function useHomes(): Home[] | undefined {
     ref
   );
 
-  return snapshot?.docs.map((doc) => doc.data());
+  return snapshot;
 }

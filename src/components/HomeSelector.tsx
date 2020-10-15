@@ -32,10 +32,10 @@ export function HomeSelector() {
         <MenuItem value="" disabled>
           Select A Home
         </MenuItem>
-        {homes.map((home) => {
+        {homes.docs.map((home) => {
           return (
             <MenuItem key={home.id} value={home.id}>
-              {home.address} {home.city}
+              {home.data().address} {home.data().city}
             </MenuItem>
           );
         })}

@@ -1,5 +1,12 @@
 import * as firebase from "firebase/app";
-import { HomeData } from "../types/HomeData";
+
+export interface HomeData {
+  baseCost?: number;
+  address: string;
+  city: string;
+  county: string;
+  createdAt: Date;
+}
 
 export const EmptyHome = {
   address: "",
