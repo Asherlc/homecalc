@@ -2,6 +2,7 @@ import * as firebase from "firebase/app";
 import { Delete as DeleteIcon, Home as HomeIcon } from "@material-ui/icons";
 import "firebase/functions";
 import {
+  Divider,
   Box,
   IconButton,
   CardActions,
@@ -115,6 +116,7 @@ function FormDialog({
         aria-labelledby="form-dialog-title"
       >
         <DialogTitle id="form-dialog-title">Add New Home</DialogTitle>
+
         <DialogContent>
           <AddressForm
             autosave={false}
@@ -198,11 +200,20 @@ function WrappableLink({
   );
 }
 
+const useStyles = makeStyles((theme: Theme) =>
+  createStyles({
+    section: {
+      margin: theme.spacing(3, 2),
+    },
+  })
+);
+
 function Workspace({
   workspace,
 }: {
   workspace: firebase.firestore.QueryDocumentSnapshot<WorkspaceModel>;
 }) {
+  const classes = useStyles();
   const ref = useMemo(() => workspace.ref.collection(Collections.Homes), [
     workspace,
   ]);
@@ -219,55 +230,65 @@ function Workspace({
       <Typography variant="h6" align="center">
         {workspace.data().name}
       </Typography>
-      <List component="nav" aria-label="main mailbox folders">
-        {homes.docs.map((home) => {
-          return (
-            <ListItem
-              button
-              component={WrappableLink}
-              key={home.id}
-              href={`/workspaces/${workspace.id}/homes/${home.id}`}
-            >
-              <ListItemIcon>
-                <HomeIcon />
-              </ListItemIcon>
-              <ListItemText>{home.data()?.address}</ListItemText>
-              <ListItemSecondaryAction>
-                <DeleteAlertDialog
-                  onConfirm={() => {
-                    return home.ref.delete();
-                  }}
-                  button={({ handleClickOpen }) => {
-                    return (
-                      <IconButton
-                        edge="end"
-                        aria-label="delete"
-                        onClick={handleClickOpen}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    );
-                  }}
-                />
-              </ListItemSecondaryAction>
-            </ListItem>
-          );
-        })}
-      </List>
-      <FormDialog workspace={workspace} />
-      <Typography variant="subtitle1">Shared with</Typography>
-      <Owners owners={workspace.data().owners} workspace={workspace} />
-      <TextFieldWithAddButton
-        label="Share with email"
-        type="email"
-        clearOnSubmit={true}
-        required
-        onSubmit={(val) => {
-          return workspace.ref.update({
-            owners: firebase.firestore.FieldValue.arrayUnion(val),
-          });
-        }}
-      />
+      <div className={classes.section}>
+        <Typography gutterBottom variant="body1">
+          Homes
+        </Typography>
+        <List component="nav" aria-label="main mailbox folders">
+          {homes.docs.map((home) => {
+            return (
+              <ListItem
+                button
+                component={WrappableLink}
+                key={home.id}
+                href={`/workspaces/${workspace.id}/homes/${home.id}`}
+              >
+                <ListItemIcon>
+                  <HomeIcon />
+                </ListItemIcon>
+                <ListItemText>{home.data()?.address}</ListItemText>
+                <ListItemSecondaryAction>
+                  <DeleteAlertDialog
+                    onConfirm={() => {
+                      return home.ref.delete();
+                    }}
+                    button={({ handleClickOpen }) => {
+                      return (
+                        <IconButton
+                          edge="end"
+                          aria-label="delete"
+                          onClick={handleClickOpen}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      );
+                    }}
+                  />
+                </ListItemSecondaryAction>
+              </ListItem>
+            );
+          })}
+        </List>
+        <FormDialog workspace={workspace} />
+      </div>
+      <div className={classes.section}>
+        <Typography gutterBottom variant="body1">
+          Shared with
+        </Typography>
+        <Owners owners={workspace.data().owners} workspace={workspace} />
+        <TextFieldWithAddButton
+          label="Share with email"
+          type="email"
+          clearOnSubmit={true}
+          required
+          onSubmit={(val) => {
+            return workspace.ref.update({
+              owners: firebase.firestore.FieldValue.arrayUnion(val),
+            });
+          }}
+        />
+      </div>
+      <Divider variant="middle" />
       <CardActions>
         <DeleteAlertDialog
           onConfirm={() => {
