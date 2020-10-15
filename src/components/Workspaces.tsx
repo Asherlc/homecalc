@@ -1,12 +1,13 @@
 import * as firebase from "firebase/app";
+import { Delete as DeleteIcon } from "@material-ui/icons";
 import "firebase/functions";
 import {
+  Box,
   makeStyles,
   MenuList,
   CircularProgress,
   Grid,
   Card,
-  Paper,
   createStyles,
   CardContent,
   Typography,
@@ -20,7 +21,7 @@ import {
   MenuItem,
   Theme,
 } from "@material-ui/core";
-import { useMemo, useState } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import { Collections } from "../database";
 import { useFirestoreSnapshot } from "../hooks/firebase";
 import useWorkspaces from "../hooks/useWorkspaces";
@@ -31,6 +32,56 @@ import AddressForm from "./AddressForm";
 import { useRouter } from "next/router";
 import NextLink from "next/link";
 import { TextFieldWithAddButton } from "./inputs";
+
+interface DeleteAlertDialogRenderProps {
+  handleClickOpen: () => void;
+}
+
+function DeleteAlertDialog({
+  button,
+  onConfirm,
+}: {
+  button: (renderProps: DeleteAlertDialogRenderProps) => ReactNode;
+  onConfirm: () => Promise<void>;
+}) {
+  const [open, setOpen] = useState(false);
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  return (
+    <>
+      {button({ handleClickOpen })}
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">Delete this?</DialogTitle>
+        <DialogActions>
+          <Button
+            onClick={async () => {
+              await onConfirm();
+              handleClose();
+            }}
+            color="primary"
+          >
+            Confirm
+          </Button>
+          <Button onClick={handleClose} color="primary" autoFocus>
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+}
 
 function FormDialog({
   workspace,
@@ -163,6 +214,7 @@ function Workspace({
           );
         })}
       </MenuList>
+      <FormDialog workspace={workspace} />
       <Typography variant="subtitle1">Shared with</Typography>
       <Owners owners={workspace.data().owners} workspace={workspace} />
       <TextFieldWithAddButton
@@ -175,7 +227,25 @@ function Workspace({
           });
         }}
       />
-      <FormDialog workspace={workspace} />
+      <Box p={1}>
+        <DeleteAlertDialog
+          onConfirm={() => {
+            return workspace.ref.delete();
+          }}
+          button={({ handleClickOpen }) => {
+            return (
+              <Button
+                variant="contained"
+                color="secondary"
+                startIcon={<DeleteIcon />}
+                onClick={handleClickOpen}
+              >
+                Delete
+              </Button>
+            );
+          }}
+        />
+      </Box>
     </>
   );
 }
