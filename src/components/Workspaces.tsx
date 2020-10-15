@@ -2,6 +2,7 @@ import * as firebase from "firebase/app";
 import { Delete as DeleteIcon } from "@material-ui/icons";
 import "firebase/functions";
 import {
+  Box,
   IconButton,
   CardActions,
   makeStyles,
@@ -282,7 +283,9 @@ export default function Workspaces() {
 
   return (
     <>
-      <WorkspaceForm />
+      <Box p={3}>
+        <WorkspaceForm />
+      </Box>
       <Grid container spacing={3}>
         {workspaces.docs.map((workspace) => {
           return (
