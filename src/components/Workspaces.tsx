@@ -2,7 +2,8 @@ import * as firebase from "firebase/app";
 import { Delete as DeleteIcon } from "@material-ui/icons";
 import "firebase/functions";
 import {
-  Box,
+  IconButton,
+  CardActions,
   makeStyles,
   MenuList,
   CircularProgress,
@@ -32,6 +33,7 @@ import AddressForm from "./AddressForm";
 import { useRouter } from "next/router";
 import NextLink from "next/link";
 import { TextFieldWithAddButton } from "./inputs";
+import { without } from "lodash";
 
 interface DeleteAlertDialogRenderProps {
   handleClickOpen: () => void;
@@ -155,10 +157,11 @@ function Owners({
   workspace: firebase.firestore.QueryDocumentSnapshot<WorkspaceModel>;
 }) {
   const classes = useOwnersStyle();
+  const { user } = useAuth();
 
   return (
     <ul className={classes.root}>
-      {owners.map((owner) => {
+      {without(owners, user?.email).map((owner) => {
         return (
           <li key={owner}>
             <Chip
@@ -220,32 +223,28 @@ function Workspace({
       <TextFieldWithAddButton
         label="Share with email"
         type="email"
+        clearOnSubmit={true}
         required
         onSubmit={(val) => {
-          workspace.ref.update({
+          return workspace.ref.update({
             owners: firebase.firestore.FieldValue.arrayUnion(val),
           });
         }}
       />
-      <Box p={1}>
+      <CardActions>
         <DeleteAlertDialog
           onConfirm={() => {
             return workspace.ref.delete();
           }}
           button={({ handleClickOpen }) => {
             return (
-              <Button
-                variant="contained"
-                color="secondary"
-                startIcon={<DeleteIcon />}
-                onClick={handleClickOpen}
-              >
-                Delete
-              </Button>
+              <IconButton onClick={handleClickOpen}>
+                <DeleteIcon />
+              </IconButton>
             );
           }}
         />
-      </Box>
+      </CardActions>
     </>
   );
 }
@@ -260,10 +259,11 @@ function WorkspaceForm() {
 
   return (
     <TextFieldWithAddButton
+      clearOnSubmit={true}
       required
       label="New Workspace Name"
       onSubmit={(val) => {
-        collection.add({
+        return collection.add({
           createdAt: Date.now(),
           name: val,
           owners: [user.email],

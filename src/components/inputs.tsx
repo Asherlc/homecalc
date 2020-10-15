@@ -13,7 +13,9 @@ export function TextFieldWithAddButton({
   required,
   label,
   type,
+  clearOnSubmit,
 }: {
+  clearOnSubmit?: boolean;
   type?: string;
   required?: boolean;
   label?: string;
@@ -23,12 +25,17 @@ export function TextFieldWithAddButton({
 
   return (
     <form
-      onSubmit={(event) => {
+      onSubmit={async (event) => {
         event.preventDefault();
-        onSubmit(val);
+        await onSubmit(val);
+
+        if (clearOnSubmit) {
+          setVal("");
+        }
       }}
     >
       <TextField
+        value={val}
         required={required}
         label={label}
         type={type}
