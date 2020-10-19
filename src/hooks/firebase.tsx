@@ -2,6 +2,7 @@ import { useState } from "react";
 import "../firebaseConfig";
 import * as firebase from "firebase/app";
 import { useCustomCompareEffect } from "react-use";
+import Bugsnag from "@bugsnag/js";
 
 export type FirestoreRecord<T> = {
   id: string;
@@ -13,7 +14,10 @@ type Snapshot =
   | firebase.firestore.DocumentSnapshot<firebase.firestore.DocumentData>;
 
 interface Snapshottable {
-  onSnapshot(onNext: (snapshot: Snapshot) => void): () => void;
+  onSnapshot(
+    onNext: (snapshot: Snapshot) => void,
+    onError: (error: firebase.firestore.FirestoreError) => void
+  ): () => void;
   isEqual: (arg: any) => boolean;
 }
 
@@ -24,9 +28,14 @@ export function useFirestoreSnapshot<T extends Snapshot>(
 
   useCustomCompareEffect(
     () => {
-      return ref?.onSnapshot((snapshot) => {
-        setSnapshot((snapshot as unknown) as T);
-      });
+      return ref?.onSnapshot(
+        (snapshot) => {
+          setSnapshot((snapshot as unknown) as T);
+        },
+        (error) => {
+          Bugsnag.notify(error);
+        }
+      );
     },
     [ref],
     ([prevRef], [nextRef]) => {

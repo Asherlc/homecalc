@@ -1,3 +1,4 @@
+import Bugsnag from "../bugsnag";
 import * as firebase from "firebase/app";
 import { Delete as DeleteIcon, Home as HomeIcon } from "@material-ui/icons";
 import "firebase/functions";
@@ -121,11 +122,15 @@ function FormDialog({
           <AddressForm
             autosave={false}
             onSubmit={async (values) => {
-              const record = await workspace.ref
-                .collection(Collections.Homes)
-                .add({ ...values, createdAt: new Date() });
+              try {
+                const record = await workspace.ref
+                  .collection(Collections.Homes)
+                  .add({ ...values, createdAt: new Date() });
 
-              router.push(`/workspaces/${workspace.id}/homes/${record.id}`);
+                router.push(`/workspaces/${workspace.id}/homes/${record.id}`);
+              } catch (e) {
+                Bugsnag.notify(e);
+              }
             }}
           />
         </DialogContent>

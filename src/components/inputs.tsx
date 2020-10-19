@@ -21,7 +21,7 @@ export function TextFieldWithAddButton({
   label?: string;
   onSubmit: (val: string | undefined) => void;
 }) {
-  const [val, setVal] = useState<string>();
+  const [val, setVal] = useState<string>("");
 
   return (
     <form
