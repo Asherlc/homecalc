@@ -31,6 +31,7 @@ import classNames from "classnames";
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "./Login";
+import Bugsnag from "@bugsnag/js";
 
 const drawerWidth = 240;
 
@@ -157,8 +158,12 @@ export function Header() {
               <ListItem
                 button
                 onClick={async () => {
-                  await firebase.auth().signOut();
-                  router.push("/");
+                  try {
+                    await firebase.auth().signOut();
+                    router.push("/");
+                  } catch (e) {
+                    Bugsnag.notify(e);
+                  }
                 }}
               >
                 <ListItemIcon>

@@ -176,10 +176,14 @@ function Owners({
           <li key={owner}>
             <Chip
               label={owner}
-              onDelete={(): void => {
-                workspace.ref.update({
-                  owners: firebase.firestore.FieldValue.arrayRemove(owner),
-                });
+              onDelete={async (): Promise<void> => {
+                try {
+                  await workspace.ref.update({
+                    owners: firebase.firestore.FieldValue.arrayRemove(owner),
+                  });
+                } catch (e) {
+                  Bugsnag.notify(e);
+                }
               }}
               className={classes.chip}
             />
@@ -287,11 +291,15 @@ function Workspace({
           clearOnSubmit={true}
           required
           onSubmit={(val) => {
-            return workspace.ref.update({
-              owners: firebase.firestore.FieldValue.arrayUnion(
-                val?.toLowerCase()
-              ),
-            });
+            try {
+              await workspace.ref.update({
+                owners: firebase.firestore.FieldValue.arrayUnion(
+                  val?.toLowerCase()
+                ),
+              });
+            } catch (e) {
+              Bugsnag.notify(e);
+            }
           }}
         />
       </div>

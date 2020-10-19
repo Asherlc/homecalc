@@ -14,6 +14,7 @@ import { forwardRef } from "react";
 import { isEmpty, isNumber } from "lodash";
 import { useCurrentHome } from "../hooks/useCurrentHome";
 import { SliderWithNumberInput } from "./SliderWithNumberInput";
+import Bugsnag from "@bugsnag/js";
 
 export function deletableField(validator: (rowData: any) => any) {
   return (rowData: unknown) => {
@@ -50,17 +51,25 @@ export function createOnRowAdd(
   return async function onRowAdd<
     RowData extends firebase.firestore.DocumentSnapshot<any>
   >(newData: RowData): Promise<void> {
-    await collection.add({
-      createdAt: Date.now(),
-      ...newData,
-    });
+    try {
+      await collection.add({
+        createdAt: Date.now(),
+        ...newData,
+      });
+    } catch (e) {
+      Bugsnag.notify(e);
+    }
   };
 }
 
-export function onRowDelete<
+export async function onRowDelete<
   RowData extends firebase.firestore.DocumentSnapshot<any>
 >(oldData: RowData): Promise<void> {
-  return oldData.ref.delete();
+  try {
+    await oldData.ref.delete();
+  } catch (e) {
+    Bugsnag.notify(e);
+  }
 }
 
 export async function onCellEditApproved<
@@ -71,9 +80,13 @@ export async function onCellEditApproved<
   rowData: RowData,
   columnDef: Column<RowData>
 ): Promise<void> {
-  return rowData.ref.update({
-    [columnDef.field as string]: newValue,
-  });
+  try {
+    await rowData.ref.update({
+      [columnDef.field as string]: newValue,
+    });
+  } catch (e) {
+    Bugsnag.notify(e);
+  }
 }
 
 export const icons: Icons = {

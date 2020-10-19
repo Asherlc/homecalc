@@ -3,6 +3,7 @@ import StyledFirebaseAuth from "react-firebaseui/StyledFirebaseAuth";
 import * as firebase from "firebase/app";
 import "firebase/auth";
 import { createContext, useContext, useEffect, useState } from "react";
+import Bugsnag from "@bugsnag/js";
 
 const AuthContext = createContext<{ user: firebase.User | null }>({
   user: null,
@@ -12,9 +13,17 @@ export function AuthProvider({ children }: any) {
   const [user, setUser] = useState<firebase.User | null>(null);
 
   useEffect(() => {
-    return firebase.auth().onIdTokenChanged(async (user) => {
-      setUser(user);
-    });
+    return firebase.auth().onIdTokenChanged(
+      async (user) => {
+        setUser(user);
+      },
+      (error) => {
+        Bugsnag.notify({
+          name: error.code,
+          message: error.message,
+        });
+      }
+    );
   }, []);
 
   return (
