@@ -1,9 +1,9 @@
+import handleException from "../handleException";
 import "../firebaseConfig";
 import StyledFirebaseAuth from "react-firebaseui/StyledFirebaseAuth";
 import * as firebase from "firebase/app";
 import "firebase/auth";
 import { createContext, useContext, useEffect, useState } from "react";
-import Bugsnag from "@bugsnag/js";
 
 const AuthContext = createContext<{ user: firebase.User | null }>({
   user: null,
@@ -18,7 +18,7 @@ export function AuthProvider({ children }: any) {
         setUser(user);
       },
       (error) => {
-        Bugsnag.notify({
+        handleException({
           name: error.code,
           message: error.message,
         });

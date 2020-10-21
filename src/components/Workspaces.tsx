@@ -39,6 +39,7 @@ import { useRouter } from "next/router";
 import NextLink, { LinkProps as NextLinkProps } from "next/link";
 import { TextFieldWithAddButton } from "./inputs";
 import { without } from "lodash";
+import handleException from "../handleException";
 
 interface DeleteAlertDialogRenderProps {
   handleClickOpen: () => void;
@@ -129,7 +130,7 @@ function FormDialog({
 
                 router.push(`/workspaces/${workspace.id}/homes/${record.id}`);
               } catch (e) {
-                Bugsnag.notify(e);
+                handleException(e);
               }
             }}
           />
@@ -182,7 +183,7 @@ function Owners({
                     owners: firebase.firestore.FieldValue.arrayRemove(owner),
                   });
                 } catch (e) {
-                  Bugsnag.notify(e);
+                  handleException(e);
                 }
               }}
               className={classes.chip}
@@ -290,7 +291,7 @@ function Workspace({
           type="email"
           clearOnSubmit={true}
           required
-          onSubmit={(val) => {
+          onSubmit={async (val) => {
             try {
               await workspace.ref.update({
                 owners: firebase.firestore.FieldValue.arrayUnion(
@@ -298,7 +299,7 @@ function Workspace({
                 ),
               });
             } catch (e) {
-              Bugsnag.notify(e);
+              handleException(e);
             }
           }}
         />

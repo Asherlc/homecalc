@@ -2,7 +2,7 @@ import { useState } from "react";
 import "../firebaseConfig";
 import * as firebase from "firebase/app";
 import { useCustomCompareEffect } from "react-use";
-import Bugsnag from "@bugsnag/js";
+import handleException from "../handleException";
 
 export type FirestoreRecord<T> = {
   id: string;
@@ -33,7 +33,7 @@ export function useFirestoreSnapshot<T extends Snapshot>(
           setSnapshot((snapshot as unknown) as T);
         },
         (error) => {
-          Bugsnag.notify(error);
+          handleException(error);
         }
       );
     },

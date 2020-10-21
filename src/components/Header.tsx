@@ -31,7 +31,7 @@ import classNames from "classnames";
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "./Login";
-import Bugsnag from "@bugsnag/js";
+import handleException from "../handleException";
 
 const drawerWidth = 240;
 
@@ -162,7 +162,7 @@ export function Header() {
                     await firebase.auth().signOut();
                     router.push("/");
                   } catch (e) {
-                    Bugsnag.notify(e);
+                    handleException(e);
                   }
                 }}
               >

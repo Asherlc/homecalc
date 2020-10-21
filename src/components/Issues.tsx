@@ -14,7 +14,7 @@ import { forwardRef } from "react";
 import { isEmpty, isNumber } from "lodash";
 import { useCurrentHome } from "../hooks/useCurrentHome";
 import { SliderWithNumberInput } from "./SliderWithNumberInput";
-import Bugsnag from "@bugsnag/js";
+import handleException from "../handleException";
 
 export function deletableField(validator: (rowData: any) => any) {
   return (rowData: unknown) => {
@@ -57,7 +57,7 @@ export function createOnRowAdd(
         ...newData,
       });
     } catch (e) {
-      Bugsnag.notify(e);
+      handleException(e);
     }
   };
 }
@@ -68,7 +68,7 @@ export async function onRowDelete<
   try {
     await oldData.ref.delete();
   } catch (e) {
-    Bugsnag.notify(e);
+    handleException(e);
   }
 }
 
@@ -85,7 +85,7 @@ export async function onCellEditApproved<
       [columnDef.field as string]: newValue,
     });
   } catch (e) {
-    Bugsnag.notify(e);
+    handleException(e);
   }
 }
 
