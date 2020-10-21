@@ -1,4 +1,3 @@
-import Bugsnag from "../bugsnag";
 import * as firebase from "firebase/app";
 import { Delete as DeleteIcon, Home as HomeIcon } from "@material-ui/icons";
 import "firebase/functions";
