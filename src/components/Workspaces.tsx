@@ -362,7 +362,7 @@ export default function Workspaces() {
       <Grid container spacing={3}>
         {workspaces.docs.map((workspace) => {
           return (
-            <Grid item xs={12} md={4} key={workspace.data().name}>
+            <Grid item xs={12} md={4} key={workspace.id}>
               <Card>
                 <CardContent>
                   <Workspace workspace={workspace} />
