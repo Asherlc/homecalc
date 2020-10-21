@@ -20,6 +20,7 @@ module.exports = withSourceMaps({
       new BugsnagSourceMapUploaderPlugin({
         apiKey: process.env.BUGSNAG_API_KEY,
         appVersion,
+        overwrite: true,
       })
     );
 
