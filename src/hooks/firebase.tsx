@@ -28,14 +28,19 @@ export function useFirestoreSnapshot<T extends Snapshot>(
 
   useCustomCompareEffect(
     () => {
-      return ref?.onSnapshot(
-        (snapshot) => {
-          setSnapshot((snapshot as unknown) as T);
-        },
-        (error) => {
-          handleException(error);
-        }
-      );
+      function listen(curRef: Snapshottable | undefined) {
+        return curRef?.onSnapshot(
+          (snapshot: any) => {
+            setSnapshot(snapshot as T);
+          },
+          (error: firebase.FirebaseError) => {
+            handleException(error);
+            listen(curRef);
+          }
+        );
+      }
+
+      listen(ref);
     },
     [ref],
     ([prevRef], [nextRef]) => {
