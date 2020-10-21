@@ -9,6 +9,9 @@
     "lint": "eslint . --ext .json,.js,.ts,.tsx",
     "type-check": "tsc --noEmit"
   },
+  "peerDependencies": {
+    "postcss": "^8.0.0"
+  },
   "dependencies": {
     "@bugsnag/js": "^7.4.0",
     "@bugsnag/plugin-react": "^7.3.5",
