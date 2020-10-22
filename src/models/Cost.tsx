@@ -15,33 +15,32 @@ export function getMaximumOfferable({
   return maximumTotalCost - dependentCosts;
 }
 
+export function annualTaxes(
+  countyPropertyTaxPercent: number,
+  baseCost: number
+): number {
+  return countyPropertyTaxPercent * (baseCost / 100);
+}
+
 export class Cost {
   baseCost: number;
   cityTransferTaxPercent: number;
-  countyPropertyTaxPercent: number;
 
   constructor({
     baseCost,
     cityTransferTaxPercent,
-    countyPropertyTaxPercent,
   }: {
     baseCost: number;
     cityTransferTaxPercent: number;
-    countyPropertyTaxPercent: number;
   }) {
     this.baseCost = baseCost;
     this.cityTransferTaxPercent = cityTransferTaxPercent;
-    this.countyPropertyTaxPercent = countyPropertyTaxPercent;
   }
 
   // This is extremely hard to figure out by my reckoning, but ~2% seems like a
   // rough ballpark
   get closingCosts(): number {
     return this.baseCost * CLOSING_COST_PERCENT;
-  }
-
-  get annualTaxes(): number {
-    return this.countyPropertyTaxPercent * this.baseCost;
   }
 
   get cityTransferTax(): number {

@@ -1,7 +1,8 @@
 import { useCurrentHome } from "./useCurrentHome";
 import { Cost } from "../models/Cost";
-import useSWR from "swr";
+import useSWR, { responseInterface } from "swr";
 import { useCallback } from "react";
+import { RequestError } from "./RequestError";
 
 export function useCityTransferTaxPercent(): number | undefined {
   const home = useCurrentHome();
@@ -11,6 +12,10 @@ export function useCityTransferTaxPercent(): number | undefined {
       : null,
     async (url) => {
       const res = await fetch(url);
+
+      if (!res.ok) {
+        throw new RequestError(res);
+      }
 
       const json = await res.json();
 
@@ -22,10 +27,13 @@ export function useCityTransferTaxPercent(): number | undefined {
   return data?.cityTax;
 }
 
-export function useCountyPropertyTaxPercent(): number | undefined {
+export function useCountyPropertyTaxPercent(): responseInterface<
+  number,
+  unknown
+> {
   const home = useCurrentHome();
 
-  const { data } = useSWR(
+  return useSWR(
     home
       ? `/api/property-taxes?city=${home.data()?.city}&state=${
           home.data()?.stateAbbreviation
@@ -34,13 +42,15 @@ export function useCountyPropertyTaxPercent(): number | undefined {
     async (url) => {
       const res = await fetch(url);
 
+      if (!res.ok) {
+        throw new RequestError(res);
+      }
+
       const json = await res.json();
 
       return json.countyTax;
     }
   );
-
-  return data;
 }
 
 export function useCostGenerator(): (baseCost: number) => Cost | undefined {
@@ -56,7 +66,6 @@ export function useCostGenerator(): (baseCost: number) => Cost | undefined {
       return new Cost({
         baseCost,
         cityTransferTaxPercent,
-        countyPropertyTaxPercent,
       });
     },
     [cityTransferTaxPercent, countyPropertyTaxPercent]
@@ -66,10 +75,11 @@ export function useCostGenerator(): (baseCost: number) => Cost | undefined {
 export function useCost(): Cost | undefined {
   const home = useCurrentHome();
   const costGenerator = useCostGenerator();
+  const homeData = home?.data();
 
-  if (!home) {
+  if (!homeData) {
     return undefined;
   }
 
-  return costGenerator(home.data()?.askingPrice);
+  return costGenerator(homeData.askingPrice);
 }

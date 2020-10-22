@@ -1,5 +1,6 @@
 import xmlParser from "fast-xml-parser";
 import { NextApiRequest, NextApiResponse } from "next";
+import { RequestError } from "../../src/hooks/RequestError";
 
 interface CityTransferTaxRate {
   city: string;
@@ -8,6 +9,10 @@ interface CityTransferTaxRate {
 
 async function fetchCityTransferTaxRates(city: string) {
   const res = await fetch(`https://www.vivaescrow.com/taxrates.xml`);
+
+  if (!res.ok) {
+    throw new RequestError(res);
+  }
 
   const xmlData = await res.text();
 

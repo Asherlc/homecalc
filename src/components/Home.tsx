@@ -15,11 +15,13 @@ import {
   CardContent,
   CircularProgress,
 } from "@material-ui/core";
+import { Alert } from "@material-ui/lab";
 import AddressForm from "./AddressForm";
-import { useCost } from "../hooks/useCost";
+import { useCountyPropertyTaxPercent } from "../hooks/useCost";
 import { Monies } from "./Monies";
 import { PriceField } from "./inputs";
 import handleException from "../handleException";
+import { annualTaxes } from "../models/Cost";
 
 function SummaryItem({ name, cost }: { name: string; cost: string }) {
   return (
@@ -30,9 +32,18 @@ function SummaryItem({ name, cost }: { name: string; cost: string }) {
 }
 
 function Summary() {
-  const cost = useCost();
+  const {
+    data: countyPropertyTaxPercent,
+    error,
+  } = useCountyPropertyTaxPercent();
+  const home = useCurrentHome();
+  const homeData = home?.data();
 
-  if (!cost) {
+  if (error) {
+    <Alert severity="error">Error fetching property tax</Alert>;
+  }
+
+  if (!countyPropertyTaxPercent || !homeData) {
     return <CircularProgress />;
   }
 
@@ -41,10 +52,12 @@ function Summary() {
       <CardContent>
         <List subheader={<ListSubheader>Summary</ListSubheader>}>
           <SummaryItem
-            name={`Annual Tax Cost (${numeral(
-              cost.countyPropertyTaxPercent
-            ).format("0.00%")}`}
-            cost={numeral(cost.annualTaxes).format("$0,0")}
+            name={`Annual Tax Cost (${numeral(countyPropertyTaxPercent).format(
+              "0.00%"
+            )})`}
+            cost={numeral(
+              annualTaxes(countyPropertyTaxPercent, homeData.askingPrice)
+            ).format("$0,0")}
           />
         </List>
       </CardContent>
