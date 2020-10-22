@@ -1,6 +1,20 @@
-import { Grid, Typography, LinearProgress, Button } from "@material-ui/core";
-import { TextField } from "formik-material-ui";
-import { Formik, Form, Field, useFormikContext } from "formik";
+import handleException from "../handleException";
+import * as Yup from "yup";
+import nextId from "react-id-generator";
+import { UsaStates, IStateResult } from "usa-states";
+import {
+  MenuItem,
+  Grid,
+  Typography,
+  LinearProgress,
+  Button,
+  FormControl,
+  InputLabel,
+  makeStyles,
+  createStyles,
+} from "@material-ui/core";
+import { TextField, Select } from "formik-material-ui";
+import { ErrorMessage, Formik, Form, Field, useFormikContext } from "formik";
 import { EmptyHome } from "../models/Home";
 import { useDeepCompareEffect } from "react-use";
 import { useDebouncedCallback } from "use-debounce";
@@ -8,7 +22,7 @@ import { useDebouncedCallback } from "use-debounce";
 interface Values {
   address: string;
   city: string;
-  county: string;
+  stateAbbreviation: string;
 }
 
 interface Props {
@@ -34,18 +48,39 @@ export function AutoSave() {
   return null;
 }
 
+const useStyles = makeStyles(() =>
+  createStyles({
+    formControl: {
+      minWidth: 120,
+    },
+  })
+);
+
+const FormSchema = Yup.object().shape({
+  address: Yup.string().required("Required"),
+  city: Yup.string().required("Required"),
+  stateAbbreviation: Yup.string().required("Required"),
+});
+
 export default function AddressForm({
   initialValues,
   onSubmit,
   autosave,
 }: Props) {
+  const styles = useStyles();
+  const stateAbbreviationSelectId = nextId();
   return (
     <Formik
       initialValues={initialValues || EmptyHome}
       enableReinitialize={true}
+      validationSchema={FormSchema}
       onSubmit={async (values, actions) => {
         if (onSubmit) {
-          await onSubmit(values);
+          try {
+            await onSubmit(values);
+          } catch (e) {
+            handleException(e);
+          }
         }
 
         actions.setSubmitting(false);
@@ -77,13 +112,34 @@ export default function AddressForm({
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <Field
-                component={TextField}
-                name="county"
-                required
-                label="county"
-                fullWidth
-              />
+              <FormControl className={styles.formControl}>
+                <InputLabel htmlFor={stateAbbreviationSelectId}>
+                  State
+                </InputLabel>
+                <Field
+                  component={Select}
+                  name="stateAbbreviation"
+                  label="State"
+                  type="text"
+                  required
+                  inputProps={{
+                    id: stateAbbreviationSelectId,
+                  }}
+                >
+                  <MenuItem></MenuItem>
+                  {new UsaStates().states.map((state: IStateResult) => {
+                    return (
+                      <MenuItem
+                        key={state.abbreviation}
+                        value={state.abbreviation}
+                      >
+                        {state.abbreviation}
+                      </MenuItem>
+                    );
+                  })}
+                </Field>
+                <ErrorMessage name="stateAbbreviation" />
+              </FormControl>
             </Grid>
           </Grid>
           {isSubmitting && <LinearProgress />}

@@ -4,14 +4,14 @@ export interface HomeData {
   baseCost?: number;
   address: string;
   city: string;
-  county: string;
+  stateAbbreviation: string;
   createdAt: Date;
 }
 
 export const EmptyHome = {
   address: "",
   city: "",
-  county: "",
+  stateAbbreviation: "",
   baseCost: 0,
 };
 
@@ -26,8 +26,8 @@ export class Home {
     return this.data.baseCost || 0;
   }
 
-  get county(): string {
-    return this.data.county;
+  get stateAbbreviation(): string {
+    return this.data.stateAbbreviation;
   }
 
   get address(): string {

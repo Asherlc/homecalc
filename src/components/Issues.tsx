@@ -159,12 +159,16 @@ export function Issues() {
             return (
               <SliderWithNumberInput
                 value={Math.round(rowData.data().sellerPercent * 100)}
-                onChangeCommitted={(val) => {
+                onChangeCommitted={async (val) => {
                   if (typeof val === "undefined") {
                     return;
                   }
 
-                  rowData.ref.update({ sellerPercent: val / 100 });
+                  try {
+                    await rowData.ref.update({ sellerPercent: val / 100 });
+                  } catch (e) {
+                    handleException(e);
+                  }
                 }}
               />
             );

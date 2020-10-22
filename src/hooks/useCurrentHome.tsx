@@ -3,10 +3,10 @@ import { useRouter } from "next/router";
 import { Collections, database } from "../database";
 import { useFirestoreSnapshot } from "./firebase";
 import { useMemo } from "react";
-import { firestoreHomeConverter } from "../models/Home";
+import { firestoreHomeConverter, Home } from "../models/Home";
 
 export function useCurrentHome():
-  | firebase.firestore.DocumentSnapshot<firebase.firestore.DocumentData>
+  | firebase.firestore.DocumentSnapshot<Home>
   | undefined {
   const {
     query: { workspaceId, homeId },
@@ -24,9 +24,9 @@ export function useCurrentHome():
     [homeId, workspaceId]
   );
 
-  const snapshot = useFirestoreSnapshot<firebase.firestore.DocumentSnapshot>(
-    ref?.withConverter(firestoreHomeConverter)
-  );
+  const snapshot = useFirestoreSnapshot<
+    firebase.firestore.DocumentSnapshot<Home>
+  >(ref?.withConverter(firestoreHomeConverter));
 
   return snapshot;
 }

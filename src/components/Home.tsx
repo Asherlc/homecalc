@@ -19,6 +19,7 @@ import AddressForm from "./AddressForm";
 import { useCost } from "../hooks/useCost";
 import { Monies } from "./Monies";
 import { PriceField } from "./inputs";
+import handleException from "../handleException";
 
 function SummaryItem({ name, cost }: { name: string; cost: string }) {
   return (
@@ -65,10 +66,14 @@ function Basics() {
           label="Asking Price"
           placeholder="$800,000"
           value={currentHome.data()?.askingPrice}
-          onChange={(event) => {
-            currentHome.ref.update({
-              baseCost: parseInt(event.target.value),
-            });
+          onChange={async (event) => {
+            try {
+              await currentHome.ref.update({
+                baseCost: parseInt(event.target.value),
+              });
+            } catch (e) {
+              handleException(e);
+            }
           }}
         />
       </Grid>
@@ -86,13 +91,17 @@ function AddressEditor() {
   return (
     <AddressForm
       initialValues={{
-        address: currentHome.data()?.address,
-        city: currentHome.data()?.city,
-        county: currentHome.data()?.county,
+        address: currentHome.data()?.address || "",
+        city: currentHome.data()?.city || "",
+        stateAbbreviation: currentHome.data()?.stateAbbreviation || "",
       }}
       autosave={true}
-      onSubmit={(values) => {
-        return currentHome.ref.update(values);
+      onSubmit={async (values) => {
+        try {
+          await currentHome.ref.update(values);
+        } catch (e) {
+          handleException(e);
+        }
       }}
     />
   );
