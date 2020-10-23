@@ -93,7 +93,7 @@ function useMaximumOfferable(): number | undefined {
   const cityTransferTaxPercent = useCityTransferTaxPercent();
 
   return useMemo(() => {
-    if (!issues || !monies || !cityTransferTaxPercent) {
+    if (!issues || !monies) {
       return undefined;
     }
 
@@ -104,7 +104,9 @@ function useMaximumOfferable(): number | undefined {
       immediateMonies: sumImmediateMonies(
         monies.docs.map((money) => money.data())
       ),
-      percentageCosts: cityTransferTaxPercent,
+      percentageCosts: [
+        (cityTransferTaxPercent.data || 0) * CITY_TRANSFER_TAX_SPLIT,
+      ],
     });
   }, [issues, monies, cityTransferTaxPercent]);
 }
@@ -141,13 +143,12 @@ function Formula({
   money,
   cost,
   offer,
-  cityTransferTaxPercent,
 }: {
   money: number;
   cost: number;
   offer: number;
-  cityTransferTaxPercent: number;
 }) {
+  const cityTransferTaxPercentResponse = useCityTransferTaxPercent();
   const closingCostName = useMemo(() => {
     return `Closing costs (${numeral(CLOSING_COST_PERCENT).format("0%")})`;
   }, []);
@@ -156,15 +157,21 @@ function Formula({
     <Timeline>
       <Item name="Total Immediate Monies" amount={money} type="money" />
       <Item name="Total Immediate Issue Cost" amount={cost} type="cost" />
-      <Item
-        name={`${numeral(CITY_TRANSFER_TAX_SPLIT).format(
-          "0%"
-        )} of City Transfer Tax (${numeral(cityTransferTaxPercent).format(
-          "0.00%"
-        )})`}
-        amount={offer * cityTransferTaxPercent * CITY_TRANSFER_TAX_SPLIT}
-        type="cost"
-      />
+      {cityTransferTaxPercentResponse.data && (
+        <Item
+          name={`${numeral(CITY_TRANSFER_TAX_SPLIT).format(
+            "0%"
+          )} of City Transfer Tax (${numeral(
+            cityTransferTaxPercentResponse.data
+          ).format("0.00%")})`}
+          amount={
+            offer *
+            cityTransferTaxPercentResponse.data *
+            CITY_TRANSFER_TAX_SPLIT
+          }
+          type="cost"
+        />
+      )}
       <Item
         name={closingCostName}
         amount={CLOSING_COST_PERCENT * offer}
@@ -178,8 +185,9 @@ export default function OfferCalculator() {
   const [offer, setOffer] = useState<number>();
   const issues = useIssues();
   const monies = useMonies();
-  const cityTransferTaxPercent = useCityTransferTaxPercent();
+  const cityTransferTaxPercentResponse = useCityTransferTaxPercent();
   const maximumOfferable = useMaximumOfferable();
+  const alerts = [];
 
   useEffect(() => {
     if (!offer) {
@@ -203,12 +211,17 @@ export default function OfferCalculator() {
     [issues]
   );
 
+  if (cityTransferTaxPercentResponse.error) {
+    alerts.push(
+      <Alert severity="error">Unabled to fetch city transfer tax rate</Alert>
+    );
+  }
+
   if (
     isUndefined(cost) ||
     isUndefined(money) ||
     isUndefined(maximumOfferable) ||
-    isUndefined(offer) ||
-    isUndefined(cityTransferTaxPercent)
+    isUndefined(offer)
   ) {
     return <CircularProgress />;
   }
@@ -226,12 +239,10 @@ export default function OfferCalculator() {
           setOffer(val);
         }}
       />
-      <Formula
-        cityTransferTaxPercent={cityTransferTaxPercent}
-        offer={offer}
-        money={money}
-        cost={cost}
-      />
+      <Formula offer={offer} money={money} cost={cost} />
+      {alerts.map((alert) => {
+        return alert;
+      })}
     </>
   );
 }
