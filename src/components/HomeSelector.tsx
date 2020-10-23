@@ -24,8 +24,11 @@ export function HomeSelector() {
         value={currentHome?.id || ""}
         displayEmpty
         onChange={(event) => {
+          const home = homes.docs.find(
+            (home) => home.id === event.target.value
+          );
           router.push(
-            `workspaces/${router.query.workspaceId}/homes/${event.target.value}`
+            `/workspaces/${home?.ref?.parent?.parent?.id}/homes/${home?.id}`
           );
         }}
       >

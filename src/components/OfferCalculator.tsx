@@ -139,6 +139,22 @@ function OfferSlider({
   );
 }
 
+function withLoading<D, E, C>(
+  data: D,
+  error: E,
+  component: (data: NonNullable<D>) => C
+): C | null | JSX.Element {
+  if (error) {
+    return null;
+  }
+
+  if (!data) {
+    return <CircularProgress />;
+  }
+
+  return component(data!);
+}
+
 function Formula({
   money,
   cost,
@@ -157,20 +173,22 @@ function Formula({
     <Timeline>
       <Item name="Total Immediate Monies" amount={money} type="money" />
       <Item name="Total Immediate Issue Cost" amount={cost} type="cost" />
-      {cityTransferTaxPercentResponse.data && (
-        <Item
-          name={`${numeral(CITY_TRANSFER_TAX_SPLIT).format(
-            "0%"
-          )} of City Transfer Tax (${numeral(
-            cityTransferTaxPercentResponse.data
-          ).format("0.00%")})`}
-          amount={
-            offer *
-            cityTransferTaxPercentResponse.data *
-            CITY_TRANSFER_TAX_SPLIT
-          }
-          type="cost"
-        />
+      {withLoading(
+        cityTransferTaxPercentResponse.data,
+        cityTransferTaxPercentResponse.error,
+        (data) => {
+          return (
+            <Item
+              name={`${numeral(CITY_TRANSFER_TAX_SPLIT).format(
+                "0%"
+              )} of City Transfer Tax (${numeral(
+                cityTransferTaxPercentResponse.data
+              ).format("0.00%")})`}
+              amount={offer * data * CITY_TRANSFER_TAX_SPLIT}
+              type="cost"
+            />
+          );
+        }
       )}
       <Item
         name={closingCostName}

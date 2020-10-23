@@ -23,6 +23,7 @@ export function useCityTransferTaxPercent(): responseInterface<
       return json.cityTax;
     },
     {
+      shouldRetryOnError: false,
       revalidateOnMount: true,
       revalidateOnReconnect: false,
       revalidateOnFocus: false,
@@ -54,6 +55,7 @@ export function useCountyPropertyTaxPercent(): responseInterface<
       return json.countyTax;
     },
     {
+      shouldRetryOnError: false,
       revalidateOnMount: true,
       revalidateOnReconnect: false,
       revalidateOnFocus: false,

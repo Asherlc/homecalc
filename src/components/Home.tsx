@@ -40,7 +40,7 @@ function Summary() {
   const homeData = home?.data();
 
   if (error) {
-    <Alert severity="error">Error fetching property tax</Alert>;
+    return <Alert severity="error">Error fetching property tax</Alert>;
   }
 
   if (!countyPropertyTaxPercent || !homeData) {
