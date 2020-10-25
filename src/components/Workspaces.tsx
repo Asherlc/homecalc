@@ -361,7 +361,15 @@ export default function Workspaces(): JSX.Element {
       <Grid container spacing={3}>
         {workspaces.docs.map((workspace) => {
           return (
-            <Grid item xs={12} md={4} key={workspace.id}>
+            <Grid
+              item
+              xs={12}
+              md={4}
+              key={workspace.id}
+              direction="column"
+              alignItems="center"
+              justify="center"
+            >
               <Card>
                 <CardContent>
                   <Workspace workspace={workspace} />

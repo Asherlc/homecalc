@@ -6,6 +6,7 @@ import { useCurrentHome } from "../hooks/useCurrentHome";
 import { Issues } from "./Issues";
 import { TimeChart } from "./TimeChart";
 import {
+  LinearProgress,
   List,
   ListSubheader,
   ListItem,
@@ -13,7 +14,6 @@ import {
   Card,
   Grid,
   CardContent,
-  CircularProgress,
 } from "@material-ui/core";
 import { Alert } from "@material-ui/lab";
 import AddressForm from "./AddressForm";
@@ -44,7 +44,7 @@ function Summary() {
   }
 
   if (!countyPropertyTaxPercent || !homeData) {
-    return <CircularProgress />;
+    return <LinearProgress />;
   }
 
   return (
@@ -69,7 +69,7 @@ function Basics() {
   const currentHome = useCurrentHome();
 
   if (!currentHome) {
-    return <CircularProgress />;
+    return <LinearProgress />;
   }
 
   return (
@@ -98,7 +98,7 @@ function AddressEditor() {
   const currentHome = useCurrentHome();
 
   if (!currentHome) {
-    return <CircularProgress />;
+    return <LinearProgress />;
   }
 
   return (

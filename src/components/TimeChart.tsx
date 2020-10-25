@@ -16,7 +16,7 @@ import {
   format,
   startOfMonth,
 } from "date-fns";
-import { colors, Paper, CircularProgress } from "@material-ui/core";
+import { colors, Paper, LinearProgress } from "@material-ui/core";
 import { useIssues } from "../hooks/useIssues";
 import { groupBy, last, omit, sortBy } from "lodash";
 
@@ -132,7 +132,7 @@ export function TimeChart(): JSX.Element | null {
   const issues = useIssues();
 
   if (!issues) {
-    return <CircularProgress />;
+    return <LinearProgress />;
   }
 
   if (issues.docs.length === 0) {

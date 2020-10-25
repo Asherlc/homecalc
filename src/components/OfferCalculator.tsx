@@ -11,7 +11,7 @@ import {
   Alert,
 } from "@material-ui/lab";
 import { Add, Remove } from "@material-ui/icons";
-import { Slider, Typography, CircularProgress } from "@material-ui/core";
+import { Slider, Typography, LinearProgress } from "@material-ui/core";
 import { useCityTransferTaxPercent } from "../hooks/useCost";
 import { useIssues } from "../hooks/useIssues";
 import Currency from "./Currency";
@@ -149,7 +149,7 @@ function withLoading<D, E, C>(
   }
 
   if (!data) {
-    return <CircularProgress />;
+    return <LinearProgress />;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -242,7 +242,7 @@ export default function OfferCalculator(): JSX.Element {
     isUndefined(maximumOfferable) ||
     isUndefined(offer)
   ) {
-    return <CircularProgress />;
+    return <LinearProgress />;
   }
 
   return (
