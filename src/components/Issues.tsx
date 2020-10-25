@@ -15,6 +15,7 @@ import { isEmpty, isNumber } from "lodash";
 import { useCurrentHome } from "../hooks/useCurrentHome";
 import { SliderWithNumberInput } from "./SliderWithNumberInput";
 import handleException from "../handleException";
+import { parseDate } from "chrono-node";
 
 export function deletableField(validator: (rowData: any) => any) {
   return (rowData: unknown) => {
@@ -49,6 +50,23 @@ export function requiredField<T>(fieldName: keyof T) {
 
 export const requiredAndDeletableField = (fieldName: string) =>
   deletableField(requiredField(fieldName));
+
+export function dateParseable<T>(fieldName: keyof T) {
+  return (rowData: T): Validity => {
+    const val = rowData[fieldName];
+    const isValid = parseDate((val as unknown) as string);
+
+    return isValid
+      ? true
+      : {
+          isValid,
+          helperText: `${fieldName} is not a parseable date`,
+        };
+  };
+}
+
+export const dateParseableAndDeletableField = (fieldName: string) =>
+  deletableField(dateParseable(fieldName));
 
 export function createOnRowAdd(
   collection: firebase.firestore.CollectionReference<
@@ -155,7 +173,7 @@ export function Issues(): JSX.Element | null {
           title: "Required In",
           field: "requiredIn",
           render: (rowData) => rowData.data().requiredIn,
-          validate: requiredAndDeletableField("requiredIn"),
+          validate: dateParseableAndDeletableField("requiredIn"),
         },
         {
           title: "% Seller Pays",

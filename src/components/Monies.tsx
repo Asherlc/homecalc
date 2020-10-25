@@ -7,6 +7,7 @@ import {
   createOnRowAdd,
   onRowDelete,
   onCellEditApproved,
+  dateParseableAndDeletableField,
 } from "./Issues";
 
 export function Monies(): JSX.Element | null {
@@ -52,7 +53,7 @@ export function Monies(): JSX.Element | null {
           title: "Available In",
           field: "availableIn",
           render: (rowData) => rowData.data().availableIn,
-          validate: requiredAndDeletableField("availableIn"),
+          validate: dateParseableAndDeletableField("availableIn"),
         },
       ]}
       data={monies.docs}

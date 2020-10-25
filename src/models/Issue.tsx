@@ -39,9 +39,15 @@ export class Issue {
   }
 
   get requiredInDate(): Date {
-    return this.data.requiredIn
-      ? parseDate(this.data.requiredIn, new Date(), { forwardDate: true })
-      : new Date();
+    if (!this.data.requiredIn) {
+      return new Date();
+    }
+
+    const parsedDate = parseDate(this.data.requiredIn, new Date(), {
+      forwardDate: true,
+    });
+
+    return parsedDate || new Date();
   }
 
   get requiredIn(): string | undefined {
