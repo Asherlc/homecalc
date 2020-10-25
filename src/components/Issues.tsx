@@ -26,8 +26,15 @@ export function deletableField(validator: (rowData: any) => any) {
   };
 }
 
+type Validity =
+  | boolean
+  | {
+      isValid: boolean;
+      helperText: string;
+    };
+
 export function requiredField<T>(fieldName: keyof T) {
-  return (rowData: T) => {
+  return (rowData: T): Validity => {
     const val = rowData[fieldName];
     const isValid = !isEmpty(val) || isNumber(val);
 
@@ -104,7 +111,7 @@ export const icons: Icons = {
   ThirdStateCheck: forwardRef((props, ref) => <Remove {...props} ref={ref} />),
 };
 
-export function Issues() {
+export function Issues(): JSX.Element | null {
   const issues = useIssues();
   const collection = useIssuesCollection();
   const home = useCurrentHome();

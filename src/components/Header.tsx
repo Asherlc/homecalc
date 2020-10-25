@@ -94,7 +94,7 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
-export function Header() {
+export function Header(): JSX.Element {
   const classes = useStyles();
   const theme = useTheme();
   const [open, setOpen] = useState(false);

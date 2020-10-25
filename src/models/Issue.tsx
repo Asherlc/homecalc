@@ -2,12 +2,11 @@ import * as firebase from "firebase/app";
 import { parseDate } from "chrono-node";
 
 export interface IssueData {
-  createdAt: Date;
-  name: string;
-  cost: number;
-  requiredIn: string;
-  homeId: string;
-  sellerPercent: number;
+  createdAt?: Date;
+  name?: string;
+  cost?: number;
+  requiredIn?: string;
+  sellerPercent?: number;
 }
 
 export const EmptyIssue = {
@@ -24,11 +23,11 @@ export class Issue {
   }
 
   get cost(): number {
-    return this.data.cost;
+    return this.data.cost || 0;
   }
 
   get name(): string {
-    return this.data.name;
+    return this.data.name || "";
   }
 
   get buyerCost(): number {
@@ -36,14 +35,16 @@ export class Issue {
   }
 
   get sellerPercent(): number {
-    return this.data.sellerPercent;
+    return this.data.sellerPercent || 0;
   }
 
   get requiredInDate(): Date {
-    return parseDate(this.data.requiredIn, new Date(), { forwardDate: true });
+    return this.data.requiredIn
+      ? parseDate(this.data.requiredIn, new Date(), { forwardDate: true })
+      : new Date();
   }
 
-  get requiredIn(): string {
+  get requiredIn(): string | undefined {
     return this.data.requiredIn;
   }
 }
@@ -56,7 +57,11 @@ export const firestoreIssueConverter: firebase.firestore.FirestoreDataConverter<
     snapshot: firebase.firestore.QueryDocumentSnapshot,
     options: firebase.firestore.SnapshotOptions
   ): Issue {
-    const data = snapshot.data(options)!;
+    const data = snapshot.data(options);
+
+    if (!data) {
+      throw new Error();
+    }
 
     return new Issue(data as IssueData);
   },

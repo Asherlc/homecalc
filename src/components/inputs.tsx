@@ -20,7 +20,7 @@ export function TextFieldWithAddButton({
   required?: boolean;
   label?: string;
   onSubmit: (val: string | undefined) => void;
-}) {
+}): JSX.Element {
   const [val, setVal] = useState<string>("");
 
   return (
@@ -82,7 +82,7 @@ function PriceInput({ inputRef, onChange, ...props }: NumberFormatCustomProps) {
   );
 }
 
-export function PriceField({ ...props }: TextFieldProps) {
+export function PriceField({ ...props }: TextFieldProps): JSX.Element {
   return (
     <TextField
       InputProps={{
@@ -107,7 +107,7 @@ export function TextInput({
   unformat = (val) => val,
   value,
   ...props
-}: TextInputProps) {
+}: TextInputProps): JSX.Element {
   const [val, setVal] = useState(value);
 
   useEffect(() => {

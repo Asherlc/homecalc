@@ -152,6 +152,7 @@ function withLoading<D, E, C>(
     return <CircularProgress />;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   return component(data!);
 }
 
@@ -199,7 +200,7 @@ function Formula({
   );
 }
 
-export default function OfferCalculator() {
+export default function OfferCalculator(): JSX.Element {
   const [offer, setOffer] = useState<number>();
   const issues = useIssues();
   const monies = useMonies();

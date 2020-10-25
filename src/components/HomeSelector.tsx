@@ -8,7 +8,7 @@ import {
 import { useRouter } from "next/router";
 import { useCurrentHome } from "../hooks/useCurrentHome";
 
-export function HomeSelector() {
+export function HomeSelector(): JSX.Element {
   const router = useRouter();
   const currentHome = useCurrentHome();
   const homes = useHomes();

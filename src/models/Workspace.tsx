@@ -30,7 +30,11 @@ export const firestoreWorkspaceConverter: firebase.firestore.FirestoreDataConver
     snapshot: firebase.firestore.QueryDocumentSnapshot,
     options: firebase.firestore.SnapshotOptions
   ): Workspace {
-    const data = snapshot.data(options)!;
+    const data = snapshot.data(options);
+
+    if (!data) {
+      throw new Error();
+    }
 
     return new Workspace(data as WorkspaceData);
   },

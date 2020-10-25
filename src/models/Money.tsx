@@ -40,7 +40,11 @@ export const firestoreMoneyConverter: firebase.firestore.FirestoreDataConverter<
     snapshot: firebase.firestore.QueryDocumentSnapshot,
     options: firebase.firestore.SnapshotOptions
   ): Money {
-    const data = snapshot.data(options)!;
+    const data = snapshot.data(options);
+
+    if (!data) {
+      throw new Error();
+    }
 
     return new Money(data as MoneyData);
   },

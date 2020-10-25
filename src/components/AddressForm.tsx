@@ -31,7 +31,7 @@ interface Props {
   initialValues?: Values;
 }
 
-export function AutoSave() {
+export function AutoSave(): JSX.Element | null {
   const formik = useFormikContext();
   const { dirty, isValid, isSubmitting, values, submitForm } = formik;
 
@@ -66,7 +66,7 @@ export default function AddressForm({
   initialValues,
   onSubmit,
   autosave,
-}: Props) {
+}: Props): JSX.Element {
   const styles = useStyles();
   const stateAbbreviationSelectId = nextId();
   return (

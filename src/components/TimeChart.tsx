@@ -18,7 +18,7 @@ import {
 } from "date-fns";
 import { colors, Paper, CircularProgress } from "@material-ui/core";
 import { useIssues } from "../hooks/useIssues";
-import { groupBy, last, sortBy } from "lodash";
+import { groupBy, last, omit, sortBy } from "lodash";
 
 interface ChartDataPoint {
   date: number;
@@ -121,11 +121,14 @@ class ChartData {
 }
 
 function getColor(index: number): string {
-  const colorArray = Object.values(colors).map((color) => (color as any)[500]);
+  const niceColors = omit(colors, "common");
+  const colorArray = Object.values(niceColors).map(
+    (color) => (color as any)[400]
+  );
   return colorArray[index % colorArray.length];
 }
 
-export function TimeChart() {
+export function TimeChart(): JSX.Element | null {
   const issues = useIssues();
 
   if (!issues) {

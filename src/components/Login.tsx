@@ -3,13 +3,23 @@ import "../firebaseConfig";
 import StyledFirebaseAuth from "react-firebaseui/StyledFirebaseAuth";
 import * as firebase from "firebase/app";
 import "firebase/auth";
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 const AuthContext = createContext<{ user: firebase.User | null }>({
   user: null,
 });
 
-export function AuthProvider({ children }: any) {
+export function AuthProvider({
+  children,
+}: {
+  children: ReactNode;
+}): JSX.Element {
   const [user, setUser] = useState<firebase.User | null>(null);
 
   useEffect(() => {
@@ -31,11 +41,11 @@ export function AuthProvider({ children }: any) {
   );
 }
 
-export const useAuth = () => {
+export const useAuth = (): { user: firebase.User | null } => {
   return useContext(AuthContext);
 };
 
-export function Login() {
+export function Login(): JSX.Element {
   // Configure FirebaseUI.
   const uiConfig = {
     // Popup signin flow rather than redirect flow.

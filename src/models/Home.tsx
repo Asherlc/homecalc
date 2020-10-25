@@ -47,7 +47,11 @@ export const firestoreHomeConverter: firebase.firestore.FirestoreDataConverter<H
     snapshot: firebase.firestore.QueryDocumentSnapshot,
     options: firebase.firestore.SnapshotOptions
   ): Home {
-    const data = snapshot.data(options)!;
+    const data = snapshot.data(options);
+
+    if (!data) {
+      throw new Error();
+    }
 
     return new Home(data as HomeData);
   },

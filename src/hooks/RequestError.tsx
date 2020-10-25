@@ -1,5 +1,4 @@
 export class RequestError extends Error {
-  info: any;
   status: number;
 
   constructor(res: Response) {

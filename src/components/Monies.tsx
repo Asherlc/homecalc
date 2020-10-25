@@ -9,7 +9,7 @@ import {
   onCellEditApproved,
 } from "./Issues";
 
-export function Monies() {
+export function Monies(): JSX.Element | null {
   const monies = useMonies();
   const collection = useMoniesCollection();
 

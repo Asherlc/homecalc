@@ -3,7 +3,7 @@ import { ServerStyleSheets } from "@material-ui/core/styles";
 import { Children } from "react";
 
 export default class MyDocument extends Document {
-  render() {
+  render(): JSX.Element {
     return (
       <Html lang="en">
         <Head>

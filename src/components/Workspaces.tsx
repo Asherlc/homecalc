@@ -346,7 +346,7 @@ function WorkspaceForm() {
   );
 }
 
-export default function Workspaces() {
+export default function Workspaces(): JSX.Element {
   const { workspaces } = useWorkspaces();
 
   if (!workspaces) {

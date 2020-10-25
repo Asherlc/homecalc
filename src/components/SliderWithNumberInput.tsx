@@ -17,7 +17,7 @@ export function SliderWithNumberInput({
   min = 0,
   max = 100,
   inputComponent: InputComponent = Input,
-}: Props) {
+}: Props): JSX.Element {
   const [number, setNumber] = useState(value);
 
   useEffect(() => {

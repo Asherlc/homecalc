@@ -120,7 +120,7 @@ function AddressEditor() {
   );
 }
 
-export default function HomeComponent() {
+export default function HomeComponent(): JSX.Element {
   return (
     <>
       <Grid container spacing={3}>

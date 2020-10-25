@@ -11,9 +11,10 @@ import Bugsnag from "../src/bugsnag";
 import { useEffect } from "react";
 import handleException from "../src/handleException";
 
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const ErrorBoundary = Bugsnag.getPlugin("react")!.createErrorBoundary();
 
-function MyApp({ Component, pageProps }: AppProps) {
+function MyApp({ Component, pageProps }: AppProps): JSX.Element {
   useEffect(() => {
     // Remove the server-side injected CSS.
     const jssStyles = document.querySelector("#jss-server-side");
