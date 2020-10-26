@@ -8,6 +8,7 @@ import {
   onRowDelete,
   onCellEditApproved,
   dateParseableAndDeletableField,
+  FirestoreCompatibleEditRow,
 } from "./Issues";
 
 export function Monies(): JSX.Element | null {
@@ -24,6 +25,9 @@ export function Monies(): JSX.Element | null {
       options={{
         search: false,
         paging: false,
+      }}
+      components={{
+        EditRow: FirestoreCompatibleEditRow,
       }}
       icons={icons}
       editable={{

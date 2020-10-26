@@ -1,6 +1,6 @@
 import * as firebase from "firebase/app";
 import numeral from "numeral";
-import MaterialTable, { Column, Icons } from "material-table";
+import MaterialTable, { Column, Icons, MTableEditRow } from "material-table";
 import {
   Remove,
   Clear,
@@ -10,7 +10,7 @@ import {
   Edit,
 } from "@material-ui/icons";
 import { useIssues, useIssuesCollection } from "../hooks/useIssues";
-import { forwardRef } from "react";
+import { ComponentProps, forwardRef } from "react";
 import { isEmpty, isNumber } from "lodash";
 import { useCurrentHome } from "../hooks/useCurrentHome";
 import { SliderWithNumberInput } from "./SliderWithNumberInput";
@@ -50,6 +50,21 @@ export function requiredField<T>(fieldName: keyof T) {
 
 export const requiredAndDeletableField = (fieldName: string) =>
   deletableField(requiredField(fieldName));
+
+export function FirestoreCompatibleEditRow({
+  data,
+  ...props
+}: ComponentProps<typeof MTableEditRow>): JSX.Element {
+  return (
+    <MTableEditRow
+      data={{
+        tableData: data.tableData,
+        ...data.data(),
+      }}
+      {...props}
+    />
+  );
+}
 
 export function dateParseable<T>(fieldName: keyof T) {
   return (rowData: T): Validity => {
