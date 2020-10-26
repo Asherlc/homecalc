@@ -11,10 +11,11 @@ import {
   Alert,
 } from "@material-ui/lab";
 import { Add, Remove } from "@material-ui/icons";
-import { Slider, Typography, LinearProgress } from "@material-ui/core";
+import { Grid, Slider, Typography, LinearProgress } from "@material-ui/core";
 import { useCityTransferTaxPercent } from "../hooks/useCost";
 import { useIssues } from "../hooks/useIssues";
 import Currency from "./Currency";
+import Summary from "./Summary";
 import {
   CITY_TRANSFER_TAX_SPLIT,
   CLOSING_COST_PERCENT,
@@ -246,22 +247,31 @@ export default function OfferCalculator(): JSX.Element {
   }
 
   return (
-    <>
-      <Offerable offerableAmount={maximumOfferable} />
-      <Typography variant="h6" align="center">
-        Offer: <Currency>{offer}</Currency>
-      </Typography>
-      <OfferSlider
-        max={maximumOfferable}
-        value={offer}
-        onChange={(val) => {
-          setOffer(val);
-        }}
-      />
-      <Formula offer={offer} money={money} cost={cost} />
-      {alerts.map((alert) => {
-        return alert;
-      })}
-    </>
+    <Grid container>
+      <Grid item xs={12}>
+        <Offerable offerableAmount={maximumOfferable} />
+      </Grid>
+      <Grid item xs={12}>
+        <Typography variant="h6" align="center">
+          Offer: <Currency>{offer}</Currency>
+        </Typography>
+      </Grid>
+      <Grid item xs={12}>
+        <OfferSlider
+          max={maximumOfferable}
+          value={offer}
+          onChange={(val) => {
+            setOffer(val);
+          }}
+        />
+        <Formula offer={offer} money={money} cost={cost} />
+        {alerts.map((alert) => {
+          return alert;
+        })}
+      </Grid>
+      <Grid item xs={12}>
+        <Summary baseCost={offer - cost} />
+      </Grid>
+    </Grid>
   );
 }

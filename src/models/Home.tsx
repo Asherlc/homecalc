@@ -1,7 +1,6 @@
 import * as firebase from "firebase/app";
 
 export interface HomeData {
-  baseCost?: number;
   address: string;
   city: string;
   stateAbbreviation: string;
@@ -12,7 +11,6 @@ export const EmptyHome = {
   address: "",
   city: "",
   stateAbbreviation: "",
-  baseCost: 0,
 };
 
 export class Home {
@@ -20,10 +18,6 @@ export class Home {
 
   constructor(data: HomeData) {
     this.data = data;
-  }
-
-  get askingPrice(): number {
-    return this.data.baseCost || 0;
   }
 
   get stateAbbreviation(): string {
