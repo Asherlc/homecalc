@@ -1,6 +1,6 @@
 import * as firebase from "firebase/app";
 import numeral from "numeral";
-import MaterialTable, { Column, Icons, MTableEditRow } from "material-table";
+import MaterialTable, { Column, Icons } from "material-table";
 import {
   Remove,
   Clear,
@@ -10,12 +10,13 @@ import {
   Edit,
 } from "@material-ui/icons";
 import { useIssues, useIssuesCollection } from "../hooks/useIssues";
-import { ComponentProps, forwardRef } from "react";
+import { forwardRef } from "react";
 import { isEmpty, isNumber } from "lodash";
 import { useCurrentHome } from "../hooks/useCurrentHome";
 import { SliderWithNumberInput } from "./SliderWithNumberInput";
 import handleException from "../handleException";
 import { parseDate } from "chrono-node";
+import FirebaseProxy from "../models/FirebaseProxy";
 
 export function deletableField(validator: (rowData: any) => any) {
   return (rowData: unknown) => {
@@ -51,21 +52,6 @@ export function requiredField<T>(fieldName: keyof T) {
 export const requiredAndDeletableField = (fieldName: string) =>
   deletableField(requiredField(fieldName));
 
-export function FirestoreCompatibleEditRow({
-  data,
-  ...props
-}: ComponentProps<typeof MTableEditRow>): JSX.Element {
-  return (
-    <MTableEditRow
-      data={{
-        tableData: data.tableData,
-        ...data.data(),
-      }}
-      {...props}
-    />
-  );
-}
-
 export function dateParseable<T>(fieldName: keyof T) {
   return (rowData: T): Validity => {
     const val = rowData[fieldName];
@@ -88,9 +74,9 @@ export function createOnRowAdd(
     firebase.firestore.DocumentData
   >
 ) {
-  return async function onRowAdd<
-    RowData extends firebase.firestore.DocumentSnapshot<any>
-  >(newData: RowData): Promise<void> {
+  return async function onRowAdd<RowData extends FirebaseProxy>(
+    newData: RowData
+  ): Promise<void> {
     try {
       await collection.add({
         createdAt: Date.now(),
@@ -102,26 +88,24 @@ export function createOnRowAdd(
   };
 }
 
-export async function onRowDelete<
-  RowData extends firebase.firestore.DocumentSnapshot<any>
->(oldData: RowData): Promise<void> {
+export async function onRowDelete<RowData extends FirebaseProxy>(
+  oldData: RowData
+): Promise<void> {
   try {
-    await oldData.ref.delete();
+    await oldData.delete();
   } catch (e) {
     handleException(e);
   }
 }
 
-export async function onCellEditApproved<
-  RowData extends firebase.firestore.DocumentSnapshot<any>
->(
+export async function onCellEditApproved<RowData extends FirebaseProxy>(
   newValue: unknown,
   oldValue: unknown,
   rowData: RowData,
   columnDef: Column<RowData>
 ): Promise<void> {
   try {
-    await rowData.ref.update({
+    await rowData.update({
       [columnDef.field as string]: newValue,
     });
   } catch (e) {
@@ -172,7 +156,7 @@ export function Issues(): JSX.Element | null {
         {
           title: "Name",
           field: "name",
-          render: (rowData) => rowData.data().name,
+          render: (rowData) => rowData.name,
           validate: requiredAndDeletableField("name"),
         },
         {
@@ -181,13 +165,13 @@ export function Issues(): JSX.Element | null {
           field: "cost",
           validate: requiredAndDeletableField("cost"),
           render: (rowData) => {
-            return numeral(rowData.data().cost).format("$0,0");
+            return numeral(rowData.cost).format("$0,0");
           },
         },
         {
           title: "Required In",
           field: "requiredIn",
-          render: (rowData) => rowData.data().requiredIn,
+          render: (rowData) => rowData.requiredIn,
           validate: dateParseableAndDeletableField("requiredIn"),
         },
         {
@@ -198,14 +182,14 @@ export function Issues(): JSX.Element | null {
           render: (rowData) => {
             return (
               <SliderWithNumberInput
-                value={Math.round(rowData.data().sellerPercent * 100)}
+                value={Math.round(rowData.sellerPercent * 100)}
                 onChangeCommitted={async (val) => {
                   if (typeof val === "undefined") {
                     return;
                   }
 
                   try {
-                    await rowData.ref.update({ sellerPercent: val / 100 });
+                    await rowData.update({ sellerPercent: val / 100 });
                   } catch (e) {
                     handleException(e);
                   }
@@ -215,7 +199,7 @@ export function Issues(): JSX.Element | null {
           },
         },
       ]}
-      data={issues.docs}
+      data={issues.docs.map((doc) => doc.data())}
     />
   );
 }

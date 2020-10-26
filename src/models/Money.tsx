@@ -1,5 +1,6 @@
 import * as firebase from "firebase/app";
 import { parseDate } from "chrono-node";
+import FirebaseProxy from "./FirebaseProxy";
 
 export interface MoneyData {
   name: string;
@@ -8,12 +9,10 @@ export interface MoneyData {
   createdAt: Date;
 }
 
-export default class Money {
-  data: MoneyData;
+type Snapshot = firebase.firestore.QueryDocumentSnapshot<MoneyData>;
 
-  constructor(data: MoneyData) {
-    this.data = data;
-  }
+export default class Money implements FirebaseProxy {
+  constructor(public data: MoneyData, private snapshot: Snapshot) {}
 
   get amount(): number {
     return this.data.amount;
@@ -30,6 +29,18 @@ export default class Money {
   get availableIn(): string {
     return this.data.availableIn;
   }
+
+  delete(): Promise<void> {
+    return this.snapshot.ref.delete();
+  }
+
+  update(vals: firebase.firestore.UpdateData): Promise<void> {
+    return this.snapshot.ref.update(vals);
+  }
+
+  toJSON(): firebase.firestore.DocumentData {
+    return this.data;
+  }
 }
 
 export const firestoreMoneyConverter: firebase.firestore.FirestoreDataConverter<Money> = {
@@ -37,7 +48,7 @@ export const firestoreMoneyConverter: firebase.firestore.FirestoreDataConverter<
     return money.data;
   },
   fromFirestore(
-    snapshot: firebase.firestore.QueryDocumentSnapshot,
+    snapshot: firebase.firestore.QueryDocumentSnapshot<MoneyData>,
     options: firebase.firestore.SnapshotOptions
   ): Money {
     const data = snapshot.data(options);
@@ -46,6 +57,6 @@ export const firestoreMoneyConverter: firebase.firestore.FirestoreDataConverter<
       throw new Error();
     }
 
-    return new Money(data as MoneyData);
+    return new Money(data as MoneyData, snapshot);
   },
 };

@@ -8,7 +8,6 @@ import {
   onRowDelete,
   onCellEditApproved,
   dateParseableAndDeletableField,
-  FirestoreCompatibleEditRow,
 } from "./Issues";
 
 export function Monies(): JSX.Element | null {
@@ -26,9 +25,6 @@ export function Monies(): JSX.Element | null {
         search: false,
         paging: false,
       }}
-      components={{
-        EditRow: FirestoreCompatibleEditRow,
-      }}
       icons={icons}
       editable={{
         onRowAdd: createOnRowAdd(collection),
@@ -41,7 +37,7 @@ export function Monies(): JSX.Element | null {
         {
           title: "Name",
           field: "name",
-          render: (rowData) => rowData.data().name,
+          render: (rowData) => rowData.name,
           validate: requiredAndDeletableField("name"),
         },
         {
@@ -50,17 +46,17 @@ export function Monies(): JSX.Element | null {
           field: "amount",
           validate: requiredAndDeletableField("amount"),
           render: function AmountCell(rowData) {
-            return numeral(rowData.data().amount).format("$0,0");
+            return numeral(rowData.amount).format("$0,0");
           },
         },
         {
           title: "Available In",
           field: "availableIn",
-          render: (rowData) => rowData.data().availableIn,
+          render: (rowData) => rowData.availableIn,
           validate: dateParseableAndDeletableField("availableIn"),
         },
       ]}
-      data={monies.docs}
+      data={monies.docs.map((doc) => doc.data())}
     />
   );
 }

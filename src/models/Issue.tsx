@@ -1,5 +1,6 @@
 import * as firebase from "firebase/app";
 import { parseDate } from "chrono-node";
+import FirebaseProxy from "./FirebaseProxy";
 
 export interface IssueData {
   createdAt?: Date;
@@ -15,11 +16,17 @@ export const EmptyIssue = {
   name: "",
 };
 
-export class Issue {
-  data: IssueData;
+type Snapshot = firebase.firestore.QueryDocumentSnapshot<IssueData>;
 
-  constructor(data: IssueData) {
-    this.data = data;
+export class Issue implements FirebaseProxy {
+  constructor(public data: IssueData, private snapshot: Snapshot) {}
+
+  delete(): Promise<void> {
+    return this.snapshot.ref.delete();
+  }
+
+  update(values: firebase.firestore.UpdateData): Promise<void> {
+    return this.snapshot.ref.update(values);
   }
 
   get cost(): number {
@@ -53,6 +60,10 @@ export class Issue {
   get requiredIn(): string | undefined {
     return this.data.requiredIn;
   }
+
+  toJSON(): firebase.firestore.DocumentData {
+    return this.data;
+  }
 }
 
 export const firestoreIssueConverter: firebase.firestore.FirestoreDataConverter<Issue> = {
@@ -60,7 +71,7 @@ export const firestoreIssueConverter: firebase.firestore.FirestoreDataConverter<
     return issue.data;
   },
   fromFirestore(
-    snapshot: firebase.firestore.QueryDocumentSnapshot,
+    snapshot: Snapshot,
     options: firebase.firestore.SnapshotOptions
   ): Issue {
     const data = snapshot.data(options);
@@ -69,6 +80,6 @@ export const firestoreIssueConverter: firebase.firestore.FirestoreDataConverter<
       throw new Error();
     }
 
-    return new Issue(data as IssueData);
+    return new Issue(data as IssueData, snapshot);
   },
 };

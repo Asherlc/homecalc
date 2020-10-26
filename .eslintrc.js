@@ -35,6 +35,8 @@ module.exports = {
     "no-unused-vars": "off",
     "no-undef": "off",
     "@typescript-eslint/no-unused-vars": ["error"],
+    "no-useless-constructor": "off",
+    "@typescript-eslint/no-useless-constructor": ["error"],
   },
   settings: {
     react: {
