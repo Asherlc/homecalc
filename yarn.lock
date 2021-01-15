@@ -2796,12 +2796,12 @@ chrome-trace-event@^1.0.2:
   dependencies:
     tslib "^1.9.0"
 
-chrono-node@^2.1.8:
-  version "2.1.8"
-  resolved "https://registry.yarnpkg.com/chrono-node/-/chrono-node-2.1.8.tgz#5180afb086639d13777079163aa8dd84a596c8c0"
-  integrity sha512-Bn54l+yEX4yA+/8dYIz/tITSWcPFwy1N5KpUEndPngwUCr7hTDKqVAdBjiqPrbvgOeSvcOhe3yIBH+HsmzM3GA==
+chrono-node@^2.1.11:
+  version "2.1.11"
+  resolved "https://registry.yarnpkg.com/chrono-node/-/chrono-node-2.1.11.tgz#abe0dd2e8c320e50eb98310c5a5892b08a09e21f"
+  integrity sha512-hwCQZK+dcOVJAPBk2qIOIhlgG+ik89S241JeajkEGx+HxRKwo65yim22IOu8OSj13lJPc2wIazjzsOR/XsV1IQ==
   dependencies:
-    dayjs "^1.8.29"
+    dayjs "^1.10.0"
 
 cipher-base@^1.0.0, cipher-base@^1.0.1, cipher-base@^1.0.3:
   version "1.0.4"
@@ -3291,10 +3291,10 @@ date-fns@^2.0.0-alpha.27, date-fns@^2.16.1:
   resolved "https://registry.yarnpkg.com/date-fns/-/date-fns-2.16.1.tgz#05775792c3f3331da812af253e1a935851d3834b"
   integrity sha512-sAJVKx/FqrLYHAQeN7VpJrPhagZc9R4ImZIWYRFZaaohR3KzmuK88touwsSwSVT8Qcbd4zoDsnGfX4GFB4imyQ==
 
-dayjs@^1.8.29:
-  version "1.8.36"
-  resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.8.36.tgz#be36e248467afabf8f5a86bae0de0cdceecced50"
-  integrity sha512-3VmRXEtw7RZKAf+4Tv1Ym9AGeo8r8+CjDi26x+7SYQil1UqtqdaokhzoEJohqlzt0m5kacJSDhJQkG/LWhpRBw==
+dayjs@^1.10.0:
+  version "1.10.3"
+  resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.10.3.tgz#cf3357c8e7f508432826371672ebf376cb7d619b"
+  integrity sha512-/2fdLN987N8Ki7Id8BUN2nhuiRyxTLumQnSQf9CNncFCyqFsSKb9TNhzRYcC8K8eJSJOKvbvkImo/MKKhNi4iw==
 
 debounce@^1.2.0:
   version "1.2.0"
