@@ -24,7 +24,7 @@
     "@types/recharts": "^1.8.16",
     "@types/yup": "^0.29.8",
     "@zeit/next-source-maps": "^0.0.3",
-    "chrono-node": "^2.1.8",
+    "chrono-node": "^2.2.6",
     "classnames": "^2.2.6",
     "date-fns": "^2.16.1",
     "fast-xml-parser": "^3.17.4",
