@@ -32,7 +32,7 @@
     "formik": "^2.2.0",
     "formik-material-ui": "^3.0.0",
     "formik-material-ui-lab": "^0.0.7",
-    "lodash": "^4.17.20",
+    "lodash": "^4.17.21",
     "material-table": "^1.69.1",
     "next": "9.5.5",
     "numeral": "^2.0.6",
